@@ -1,6 +1,7 @@
 import esbuild from "esbuild";
 import process from "process";
 import builtins from "builtin-modules";
+import { copyBuildFiles } from "./copy-build.mjs";
 
 const banner =
 `/*
@@ -42,8 +43,22 @@ const context = await esbuild.context({
 }).catch(() => process.exit(1));
 
 if (prod) {
+	// For production builds
 	await context.rebuild();
+	
+	// After building, copy files to Obsidian vaults
+	copyBuildFiles();
+	
 	process.exit(0);
 } else {
-	await context.watch();
+	// For development builds
+	context.watch();
+
+	// Set up a build hook to copy files after each successful rebuild
+	context.onEnd(result => {
+		if (result.errors.length === 0) {
+			console.log("Build successful, copying files to Obsidian vaults...");
+			copyBuildFiles();
+		}
+	});
 }
