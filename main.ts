@@ -836,16 +836,20 @@ class ManuscriptCalendarView extends ItemView {
                     dayCell.addClass('today');
                 }
                 
+                // First add a real placeholder dot to maintain vertical spacing
+                // This will be shown or hidden later based on whether real dots are added
+                const placeholderDot = dayCell.createDiv({
+                    cls: 'revision-dot placeholder-dot' 
+                });
+                
+                // Variable to track if we've added any real dots
+                let hasAddedRealDot = false;
+                
                 // Check if this date has scenes
                 const hasScenes = revisionMap.has(dateKey);
                 const isFutureTask = todoFutureDates.has(dateKey);
                 const isOverdue = overdueDates.has(dateKey);
                 const isPastDate = currentDate < today && !isToday;
-                
-                // Add invisible placeholder dot for every cell for consistent vertical alignment
-                const placeholderDot = dayCell.createDiv({
-                    cls: 'revision-dot placeholder-dot'
-                });
                 
                 // Make the cell clickable if it has scenes
                 if (hasScenes || isFutureTask || isOverdue) {
@@ -863,6 +867,7 @@ class ManuscriptCalendarView extends ItemView {
                         const overdueDot = dayCell.createDiv({
                             cls: 'revision-dot overdue'
                         });
+                        hasAddedRealDot = true;
                         
                         // If we also have completed scenes, we still want to show them in the tooltip
                         // but the visual indicator (dot) will be red for overdue priority
@@ -874,6 +879,7 @@ class ManuscriptCalendarView extends ItemView {
                         const futureTodoDot = dayCell.createDiv({
                             cls: 'revision-dot future-todo-dot'
                         });
+                        hasAddedRealDot = true;
                     }
                     
                     // Show completed scene indicators
@@ -930,6 +936,7 @@ class ManuscriptCalendarView extends ItemView {
                                     const revisionDot = dayCell.createDiv({
                                         cls: `revision-dot ${check.cls}`
                                     });
+                                    hasAddedRealDot = true;
                                     
                                     // For Zero stage, handle special case with revision
                                     if (check.stage === "ZERO" && hasNonZeroRevision) {
@@ -951,6 +958,7 @@ class ManuscriptCalendarView extends ItemView {
                                 const splitDot = dayCell.createDiv({
                                     cls: 'revision-dot split-revision'
                                 });
+                                hasAddedRealDot = true;
                                 
                                 // Create left part (Zero revision)
                                 const zeroPart = splitDot.createDiv({
@@ -964,6 +972,11 @@ class ManuscriptCalendarView extends ItemView {
                             }
                         }
                     }
+                }
+                
+                // If we've added any real dots, hide the placeholder
+                if (hasAddedRealDot) {
+                    placeholderDot.addClass('hidden');
                 }
                 
                 // Move to next day

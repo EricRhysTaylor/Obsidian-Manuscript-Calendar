@@ -288,35 +288,68 @@ If your plugin does not need CSS, delete this file.
   margin-top: 8px;
 }
 
+/* Main legend container - enhanced with background and shadow */
 .calendar-legend {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
+  gap: 12px;
+  background-color: var(--background-secondary-alt);
+  border-radius: 4px;
+  padding: 10px;
+  margin: 0 auto;
+  max-width: fit-content;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+/* Legend items */
 .legend-item {
   display: flex;
   align-items: center;
-  margin-right: 8px;
+  margin: 0;
+  opacity: 1 !important;
 }
 
+/* SVG icon container - pure icons without background */
 .legend-swatch {
-  width: 16px;
-  height: 16px;
-  margin-right: 4px;
+  width: 20px;
+  height: 20px;
+  margin-right: 6px;
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: transparent !important;
 }
 
+/* Remove all legacy background colors from legend swatches */
+.legend-swatch.zero-color,
+.legend-swatch.stage-zero,
+.legend-swatch.author-color,
+.legend-swatch.stage-author,
+.legend-swatch.house-color,
+.legend-swatch.stage-house,
+.legend-swatch.press-color,
+.legend-swatch.stage-press {
+  background-color: transparent !important;
+}
+
+/* SVG icons styling - larger and more visible */
 .legend-swatch svg {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   stroke-width: 2px;
   opacity: 1 !important;
 }
 
+/* Make the House stage icon (graduation cap) larger */
+.legend-swatch.stage-house svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.8px;
+  transform: translateY(-1px); /* Adjust vertical alignment */
+}
+
+/* SVG icon colors for each stage */
 .legend-swatch.stage-zero svg {
   stroke: var(--color-zero) !important;
   fill: none;
@@ -337,35 +370,19 @@ If your plugin does not need CSS, delete this file.
   fill: none;
 }
 
-/* Legend label styles */
+/* Legend label */
 .legend-label {
-  font-size: 0.7em;
+  font-size: 0.75em;
   text-transform: uppercase;
-  letter-spacing: -0.3px;
+  letter-spacing: 0px;
   white-space: nowrap;
   margin: 0;
   padding: 0;
   font-weight: 600;
+  color: var(--text-normal);
 }
 
-/* Improve legend container */
-.legend-container {
-  margin-top: 10px;
-}
-
-.calendar-legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  background-color: var(--background-secondary-alt);
-  border-radius: 4px;
-  padding: 8px;
-  margin: 0 auto;
-  max-width: fit-content;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
+/* Responsive adjustments */
 @media (max-width: 600px) {
   .calendar-legend {
     flex-wrap: wrap;
@@ -575,12 +592,18 @@ tr.week-with-scenes td {
   color: var(--color-future);
 }
 
-/* Placeholder dot for consistent vertical alignment */
+/* Placeholder dot for consistent vertical alignment - visible by default */
 .revision-dot.placeholder-dot {
-  visibility: hidden;
   height: 3px;
-  width: 3px;
+  width: 8px;
   display: block;
   margin: 2px auto 0;
-  border-radius: 50%;
+  border-radius: 0;
+  background-color: var(--text-normal);
+  opacity: 0.15; /* Slightly visible by default */
+}
+
+/* Hide placeholder when real dots are added */
+.revision-dot.placeholder-dot.hidden {
+  opacity: 0;
 }
