@@ -782,6 +782,7 @@ class ManuscriptCalendarView extends ItemView {
                 const hasScenes = revisionMap.has(dateKey);
                 const isFutureTask = todoFutureDates.has(dateKey);
                 const isOverdue = overdueDates.has(dateKey);
+                const isPastDate = currentDate < today && !isToday;
                 
                 // Make the cell clickable if it has scenes
                 if (hasScenes || isFutureTask || isOverdue) {
@@ -792,16 +793,16 @@ class ManuscriptCalendarView extends ItemView {
                         dayCell.addClass('future-todo');
                     }
                     
-                    // If it's an overdue task, add overdue class
+                    // If it's an overdue task (past date, not complete), add overdue class and red indicator
                     if (isOverdue) {
                         // Create indicator for overdue tasks
                         const overdueDot = dayCell.createDiv({
                             cls: 'revision-dot overdue'
                         });
                     }
-                    
-                    // Add revision indicators for completed scenes
-                    if (hasScenes) {
+                    // Only add revision indicators for completed scenes if not overdue
+                    // This ensures overdue indicators take precedence
+                    else if (hasScenes) {
                         const scenesForDate = revisionMap.get(dateKey);
                         
                         if (scenesForDate) {
@@ -820,8 +821,9 @@ class ManuscriptCalendarView extends ItemView {
                                     hasNonZeroRevision = true;
                                 }
                             });
-                            
-                            // Check for each stage and create the appropriate dots
+
+                            // Only show publish stage colors for today or future dates
+                            // For past dates, they're either overdue (red) or complete (stage colors)
                             const stageChecks = [
                                 { stage: "Zero", cls: "stage-zero" },
                                 { stage: "First", cls: "stage-author" },
@@ -870,7 +872,7 @@ class ManuscriptCalendarView extends ItemView {
                     }
                     
                     // If it's a future task and not an overdue or completed scene
-                    if (isFutureTask && !hasScenes && !isOverdue) {
+                    else if (isFutureTask && !hasScenes && !isOverdue) {
                         // Create indicator for future todos
                         const futureTodoDot = dayCell.createDiv({
                             cls: 'revision-dot future-todo-dot'
