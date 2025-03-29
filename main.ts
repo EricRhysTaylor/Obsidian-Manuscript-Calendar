@@ -471,10 +471,12 @@ class ManuscriptCalendarView extends ItemView {
         legendItems.forEach(item => {
             const legendItem = calendarLegend.createDiv({ cls: 'legend-item' });
             
+            // Create the swatch div with specific stage class
             const legendSwatch = legendItem.createDiv({ cls: `legend-swatch ${item.cls}` });
             
-            // Create SVG icon
+            // Create SVG icon and explicitly log it
             const iconSvg = this.createSvgIcon(item.icon);
+            console.log(`Created legend icon for ${item.label}:`, iconSvg);
             legendSwatch.appendChild(iconSvg);
             
             const legendLabel = legendItem.createSpan({ cls: 'legend-label', text: item.label });

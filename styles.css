@@ -319,6 +319,37 @@ If your plugin does not need CSS, delete this file.
   justify-content: center;
   align-items: center;
   background-color: transparent !important;
+  position: relative; /* Important for icons positioning */
+}
+
+/* Special fix for Zero stage icon - hide the original SVG */
+.legend-swatch.stage-zero svg {
+  display: none;
+}
+
+/* Create circle-slash using pure CSS for Zero stage */
+.legend-swatch.stage-zero::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--color-zero);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.legend-swatch.stage-zero::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 2px;
+  background-color: var(--color-zero);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  z-index: 1;
 }
 
 /* Remove all legacy background colors from legend swatches */
