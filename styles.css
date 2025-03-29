@@ -274,114 +274,56 @@ If your plugin does not need CSS, delete this file.
   background-color: var(--text-muted); /* Off-month color for revisions > 0 */
 }
 
-/* Compact legend */
+/* Legend styling */
+.legend-wrapper {
+  margin-top: 8px;
+}
+
 .calendar-legend {
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  gap: 5px;
-  width: 100%;
-  justify-content: space-between;
-  padding: 0 15px;
-  margin: 0;
-}
-
-.legend-wrapper {
-  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  width: 100%;
-  padding: 0;
-  margin-top: 5px;
-  margin-bottom: 0;
+  gap: 8px;
 }
 
-.legend-container {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-}
-
-/* More specific selectors for the legend color keys */
-.manuscript-calendar-view .calendar-legend .legend-item .legend-swatch,
-.manuscript-calendar-view .legend-item .legend-swatch,
-.calendar-legend .legend-item .legend-swatch,
-.legend-item .legend-swatch {
-  width: 6px !important;
-  height: 6px !important;
-  border-radius: 0 !important; /* Remove border-radius for rectangular shape */
-  display: inline-block !important;
-  margin-right: 4px !important;
-  vertical-align: middle !important;
-}
-
-/* Ensure all stage colors in the legend match */
-.legend-swatch.stage-author,
-.legend-swatch.stage-house,
-.legend-swatch.stage-press {
-  width: 6px !important;
-  height: 6px !important;
-}
-
-.stage-selector {
-  margin-bottom: 5px;
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.stage-selector label {
-  font-size: 12px;
-  margin-right: 8px;
-  font-weight: normal;
-}
-
-.stage-selector select {
-  background-color: var(--background-primary) !important;
-  border: 1px solid var(--background-modifier-border) !important;
-  color: var(--text-normal) !important;
-  padding: 2px 4px !important;
-  font-size: 12px !important;
-  border-radius: 4px !important;
-  outline: none !important;
-  cursor: pointer !important;
-  margin: 0 !important;
-  max-width: 100% !important;
-  text-overflow: ellipsis !important;
-  -webkit-appearance: none !important;
-  appearance: none !important;
-}
-
-.theme-dark .stage-selector select {
-  background-color: var(--background-primary-alt) !important;
-}
-
-/* Legend styles */
 .legend-item {
   display: flex;
   align-items: center;
-  margin: 0;
-  padding: 0 5px;
-  white-space: nowrap;
-  flex: 1;
-  text-align: center;
-  justify-content: center;
-  min-width: 50px;
-}
-
-.legend-item:last-child {
-  margin-right: 0;
+  margin-right: 8px;
 }
 
 .legend-swatch {
-  width: 6px;
-  height: 6px;
-  border-radius: 0;
-  margin-right: 2px;
-  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  margin-right: 4px;
+  border-radius: 2px;
 }
 
-.legend-swatch.revision-placeholder {
-  opacity: 0.3;
-  background-color: var(--background-modifier-border);
+.legend-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Legend swatch styles with matching colors */
+.legend-swatch.zero-color,
+.legend-swatch.stage-zero {
+  background-color: var(--color-zero) !important;
+}
+
+.legend-swatch.author-color,
+.legend-swatch.stage-author {
+  background-color: var(--color-first) !important;
+}
+
+.legend-swatch.house-color,
+.legend-swatch.stage-house {
+  background-color: var(--color-editing) !important;
+}
+
+.legend-swatch.press-color,
+.legend-swatch.stage-press {
+  background-color: var(--color-press) !important;
 }
 
 /* Legend styles continued */

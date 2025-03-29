@@ -436,17 +436,16 @@ class ManuscriptCalendarView extends ItemView {
         
         // Create legend items using DOM methods instead of innerHTML
         const legendItems = [
-            { cls: 'stage-zero', label: 'ZERO', color: 'var(--color-zero)' },
-            { cls: 'stage-author', label: 'AUTHOR', color: 'var(--color-first)' },
-            { cls: 'stage-house', label: 'HOUSE', color: 'var(--color-editing)' },
-            { cls: 'stage-press', label: 'PRESS', color: 'var(--color-press)' }
+            { cls: 'stage-zero', label: 'ZERO' },
+            { cls: 'stage-author', label: 'AUTHOR' },
+            { cls: 'stage-house', label: 'HOUSE' },
+            { cls: 'stage-press', label: 'PRESS' }
         ];
         
         legendItems.forEach(item => {
             const legendItem = calendarLegend.createDiv({ cls: 'legend-item' });
             
             const legendSwatch = legendItem.createDiv({ cls: `legend-swatch ${item.cls}` });
-            legendSwatch.style.backgroundColor = `${item.color} !important`;
             
             const legendLabel = legendItem.createSpan({ cls: 'legend-label', text: item.label });
         });
