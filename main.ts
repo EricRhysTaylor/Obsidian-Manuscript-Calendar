@@ -462,16 +462,20 @@ class ManuscriptCalendarView extends ItemView {
         
         // Create legend items using DOM methods instead of innerHTML
         const legendItems = [
-            { cls: 'stage-zero', label: 'ZERO' },
-            { cls: 'stage-author', label: 'AUTHOR' },
-            { cls: 'stage-house', label: 'HOUSE' },
-            { cls: 'stage-press', label: 'PRESS' }
+            { cls: 'stage-zero', label: 'ZERO', icon: 'circle-slash' },
+            { cls: 'stage-author', label: 'AUTHOR', icon: 'smile' },
+            { cls: 'stage-house', label: 'HOUSE', icon: 'graduation-cap' },
+            { cls: 'stage-press', label: 'PRESS', icon: 'printer' }
         ];
         
         legendItems.forEach(item => {
             const legendItem = calendarLegend.createDiv({ cls: 'legend-item' });
             
             const legendSwatch = legendItem.createDiv({ cls: `legend-swatch ${item.cls}` });
+            
+            // Create SVG icon
+            const iconSvg = this.createSvgIcon(item.icon);
+            legendSwatch.appendChild(iconSvg);
             
             const legendLabel = legendItem.createSpan({ cls: 'legend-label', text: item.label });
         });
@@ -838,6 +842,11 @@ class ManuscriptCalendarView extends ItemView {
                 const isOverdue = overdueDates.has(dateKey);
                 const isPastDate = currentDate < today && !isToday;
                 
+                // Add invisible placeholder dot for every cell for consistent vertical alignment
+                const placeholderDot = dayCell.createDiv({
+                    cls: 'revision-dot placeholder-dot'
+                });
+                
                 // Make the cell clickable if it has scenes
                 if (hasScenes || isFutureTask || isOverdue) {
                     dayCell.addClass('clickable-cell');
@@ -955,252 +964,117 @@ class ManuscriptCalendarView extends ItemView {
                             }
                         }
                     }
-                    
-                    // Make cell clickable to open the scenes for this date
-                    if (notesByDate.has(dateKey)) {
-                        // Get notes for this date
-                        const notes = notesByDate.get(dateKey);
-                        
-                        // Create tooltip for this cell
-                        if (notes && notes.length > 0) {
-                            // Find overdue and completed notes
-                            const overdueNotes = notes.filter(note => {
-                                const status = note.Status;
-                                const isComplete = status && (
-                                    Array.isArray(status) 
-                                        ? status.includes("Complete") 
-                                        : status === "Complete"
-                                );
-                                return !isComplete;
-                            });
-                            
-                            const completedNotes = notes.filter(note => {
-                                const status = note.Status;
-                                const isComplete = status && (
-                                    Array.isArray(status) 
-                                        ? status.includes("Complete") 
-                                        : status === "Complete"
-                                );
-                                return isComplete;
-                            });
-                            
-                            // Add mouseover event to show tooltip
-                            dayCell.addEventListener('mouseover', (event) => {
-                                // Remove any existing tooltips
-                                const existingTooltip = document.querySelector('.calendar-tooltip');
-                                if (existingTooltip) {
-                                    existingTooltip.remove();
-                                }
-                                
-                                // Create tooltip element using DOM methods
-                                const tooltip = document.createElement('div');
-                                tooltip.classList.add('calendar-tooltip');
-                                
-                                // Check if current date is in the future
-                                const isFutureDate = currentDate > today;
-                                
-                                // Show overdue/due notes first
-                                if (overdueNotes.length > 0) {
-                                    const overdueSection = document.createElement('div');
-                                    overdueSection.classList.add('tooltip-section');
-                                    
-                                    // Use "Due" for future dates and "Overdue" for past dates
-                                    if (isFutureDate) {
-                                        overdueSection.classList.add('due-section');
-                                        const dueHeading = document.createElement('h4');
-                                        dueHeading.textContent = 'Due:';
-                                        overdueSection.appendChild(dueHeading);
-                                    } else {
-                                        overdueSection.classList.add('overdue-section');
-                                        const overdueHeading = document.createElement('h4');
-                                        overdueHeading.textContent = 'Overdue:';
-                                        overdueSection.appendChild(overdueHeading);
-                                    }
-                                    
-                                    const overdueList = document.createElement('ul');
-                                    overdueNotes.forEach(note => {
-                                        const listItem = document.createElement('li');
-                                        // Get filename from path and remove .md extension
-                                        const filename = note.file.path.split('/').pop()?.replace(/\.md$/, '') || 'Unknown';
-                                        listItem.textContent = filename;
-                                        overdueList.appendChild(listItem);
-                                    });
-                                    
-                                    overdueSection.appendChild(overdueList);
-                                    tooltip.appendChild(overdueSection);
-                                }
-                                
-                                // Show completed notes with their stage color
-                                if (completedNotes.length > 0) {
-                                    const completedSection = document.createElement('div');
-                                    completedSection.classList.add('tooltip-section', 'completed-section');
-                                    
-                                    const completedHeading = document.createElement('h4');
-                                    completedHeading.textContent = 'Completed:';
-                                    completedSection.appendChild(completedHeading);
-                                    
-                                    const completedList = document.createElement('ul');
-                                    completedNotes.forEach(note => {
-                                        const listItem = document.createElement('li');
-                                        const publishStage = note["Publish Stage"] || "ZERO";
-                                        const stageClass = publishStage.toString().toUpperCase() === "ZERO" ? "stage-zero" : 
-                                                          publishStage.toString().toUpperCase() === "AUTHOR" ? "stage-author" :
-                                                          publishStage.toString().toUpperCase() === "HOUSE" ? "stage-house" :
-                                                          publishStage.toString().toUpperCase() === "PRESS" ? "stage-press" : "";
-                                        
-                                        if (stageClass) {
-                                            listItem.classList.add(stageClass);
-                                        }
-                                        
-                                        // Get filename from path and remove .md extension
-                                        const filename = note.file.path.split('/').pop()?.replace(/\.md$/, '') || 'Unknown';
-                                        listItem.textContent = filename;
-                                        completedList.appendChild(listItem);
-                                    });
-                                    
-                                    completedSection.appendChild(completedList);
-                                    tooltip.appendChild(completedSection);
-                                }
-                                
-                                // If we have future todos but no overdue or completed notes
-                                if (tooltip.childElementCount === 0 && isFutureTask) {
-                                    const futureSection = document.createElement('div');
-                                    futureSection.classList.add('tooltip-section', 'future-section');
-                                    
-                                    const futureHeading = document.createElement('h4');
-                                    futureHeading.textContent = 'Future Todos:';
-                                    futureSection.appendChild(futureHeading);
-                                    
-                                    const futureList = document.createElement('ul');
-                                    notes.forEach(note => {
-                                        const listItem = document.createElement('li');
-                                        // Get filename from path and remove .md extension
-                                        const filename = note.file.path.split('/').pop()?.replace(/\.md$/, '') || 'Unknown';
-                                        listItem.textContent = filename;
-                                        futureList.appendChild(listItem);
-                                    });
-                                    
-                                    futureSection.appendChild(futureList);
-                                    tooltip.appendChild(futureSection);
-                                }
-                                
-                                // Only add the tooltip if it has content
-                                if (tooltip.childElementCount > 0) {
-                                    // Add tooltip to document
-                                    document.body.appendChild(tooltip);
-                                    
-                                    // Add CSS class to position tooltip (defined in styles.css)
-                                    tooltip.classList.add('tooltip-positioning');
-                                    
-                                    // Use the initial mouse position to update the custom properties
-                                    const mouseEvent = event as MouseEvent;
-                                    updateTooltipPosition(tooltip, mouseEvent);
-                                }
-                            });
-                            
-                            // Remove tooltip on mouseout
-                            dayCell.addEventListener('mouseout', () => {
-                                const tooltip = document.querySelector('.calendar-tooltip');
-                                if (tooltip) {
-                                    tooltip.remove();
-                                }
-                            });
-                            
-                            // Keep the tooltip positioned with the mouse as it moves within the cell
-                            dayCell.addEventListener('mousemove', (event) => {
-                                const tooltip = document.querySelector('.calendar-tooltip');
-                                if (tooltip) {
-                                    const mouseEvent = event as MouseEvent;
-                                    updateTooltipPosition(tooltip, mouseEvent);
-                                }
-                            });
-                            
-                            // Helper function to update tooltip position via CSS variables
-                            function updateTooltipPosition(tooltip: Element, event: MouseEvent) {
-                                const root = document.documentElement;
-                                
-                                // Get window width and tooltip width for right edge detection
-                                const windowWidth = window.innerWidth;
-                                const tooltipWidth = (tooltip as HTMLElement).offsetWidth;
-                                const cursorX = event.pageX;
-                                
-                                // Check if tooltip would extend beyond right edge of window
-                                if (cursorX + tooltipWidth + 20 > windowWidth) {
-                                    // Right justify tooltip (position to the left of cursor)
-                                    root.style.setProperty('--tooltip-left', `${cursorX - tooltipWidth - 10}px`);
-                                } else {
-                                    // Normal positioning (to the right of cursor)
-                                    root.style.setProperty('--tooltip-left', `${cursorX + 10}px`);
-                                }
-                                
-                                root.style.setProperty('--tooltip-top', `${event.pageY + 10}px`);
-                            }
-                        }
-                        
-                        dayCell.addEventListener('click', async () => {
-                            const notes = notesByDate.get(dateKey);
-                            if (notes && notes.length > 0) {
-                                try {
-                                    // Find overdue notes and completed notes
-                                    let overdueNotes: DataviewPage[] = [];
-                                    let completedNotes: DataviewPage[] = [];
-                                    
-                                    // Categorize notes
-                                    notes.forEach(note => {
-                                        const status = note.Status;
-                                        const isComplete = status && (
-                                            Array.isArray(status) 
-                                                ? status.includes("Complete") 
-                                                : status === "Complete"
-                                        );
-                                        
-                                        if (isComplete) {
-                                            completedNotes.push(note);
-                                        } else {
-                                            overdueNotes.push(note);
-                                        }
-                                    });
-                                    
-                                    // Choose which notes to open
-                                    const notesToOpen = overdueNotes.length > 0 ? overdueNotes : completedNotes;
-                                    
-                                    // If we have notes to open
-                                    if (notesToOpen.length > 0) {
-                                        // Open all notes
-                                        for (const note of notesToOpen) {
-                                            const filePath = note.file.path;
-                                            // Open each file in a new tab
-                                            await this.app.workspace.openLinkText(filePath, '', true);
-                                        }
-                                        
-                                        // Get the most recently opened leaf to focus on
-                                        let lastOpenedLeaf: WorkspaceLeaf | null = null;
-                                        const lastOpenedPath = notesToOpen[0].file.path; // Default to first note
-                                        
-                                        this.app.workspace.iterateAllLeaves(leaf => {
-                                            const viewState = leaf.getViewState();
-                                            if (viewState.state?.file === lastOpenedPath) {
-                                                lastOpenedLeaf = leaf;
-                                                return true;
-                                            }
-                                        });
-                                        
-                                        // Focus on the last opened note
-                                        if (lastOpenedLeaf) {
-                                            this.app.workspace.setActiveLeaf(lastOpenedLeaf);
-                                        }
-                                    }
-                                } catch (error) {
-                                    console.error("Error opening files:", error);
-                                }
-                            }
-                        });
-                    }
                 }
                 
                 // Move to next day
                 currentDate.setDate(currentDate.getDate() + 1);
             }
         }
+    }
+
+    // Helper method to create SVG icons
+    createSvgIcon(name: string): SVGElement {
+        let svg: SVGElement;
+        let path: SVGElement | null = null;
+        
+        // Create SVG element
+        svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        svg.setAttribute('width', '16');
+        svg.setAttribute('height', '16');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', 'currentColor');
+        svg.setAttribute('stroke-width', '2');
+        svg.setAttribute('stroke-linecap', 'round');
+        svg.setAttribute('stroke-linejoin', 'round');
+        
+        // Create path based on icon name
+        switch (name) {
+            case 'circle-slash':
+                // Circle with a slash
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', '12');
+                circle.setAttribute('cy', '12');
+                circle.setAttribute('r', '10');
+                
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', '4.93');
+                line.setAttribute('y1', '4.93');
+                line.setAttribute('x2', '19.07');
+                line.setAttribute('y2', '19.07');
+                
+                svg.appendChild(circle);
+                svg.appendChild(line);
+                break;
+                
+            case 'smile':
+                // Smiley face
+                const smileCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                smileCircle.setAttribute('cx', '12');
+                smileCircle.setAttribute('cy', '12');
+                smileCircle.setAttribute('r', '10');
+                
+                const eyes = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                eyes.setAttribute('d', 'M8 14s1.5 2 4 2 4-2 4-2');
+                
+                const leftEye = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                leftEye.setAttribute('x1', '9');
+                leftEye.setAttribute('y1', '9');
+                leftEye.setAttribute('x2', '9.01');
+                leftEye.setAttribute('y2', '9');
+                
+                const rightEye = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                rightEye.setAttribute('x1', '15');
+                rightEye.setAttribute('y1', '9');
+                rightEye.setAttribute('x2', '15.01');
+                rightEye.setAttribute('y2', '9');
+                
+                svg.appendChild(smileCircle);
+                svg.appendChild(eyes);
+                svg.appendChild(leftEye);
+                svg.appendChild(rightEye);
+                break;
+                
+            case 'graduation-cap':
+                // Graduation cap
+                const cap = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                cap.setAttribute('d', 'M12 2L2 7l10 5 10-5-10-5z');
+                
+                const tassel = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                tassel.setAttribute('d', 'M2 7v5a8 3 0 0 0 16 0V7');
+                
+                const base = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                base.setAttribute('x1', '6');
+                base.setAttribute('y1', '10');
+                base.setAttribute('x2', '6');
+                base.setAttribute('y2', '17');
+                
+                svg.appendChild(cap);
+                svg.appendChild(tassel);
+                svg.appendChild(base);
+                break;
+                
+            case 'printer':
+                // Printer
+                const printer = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+                printer.setAttribute('points', '6 9 6 2 18 2 18 9');
+                
+                const box = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                box.setAttribute('d', 'M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2');
+                
+                const paper = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                paper.setAttribute('x', '6');
+                paper.setAttribute('y', '14');
+                paper.setAttribute('width', '12');
+                paper.setAttribute('height', '8');
+                
+                svg.appendChild(printer);
+                svg.appendChild(box);
+                svg.appendChild(paper);
+                break;
+        }
+        
+        return svg;
     }
 } 

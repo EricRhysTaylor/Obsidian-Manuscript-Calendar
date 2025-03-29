@@ -247,7 +247,8 @@ If your plugin does not need CSS, delete this file.
 
 /* Special handling for Zero stage with revision > 0 */
 .revision-dot.stage-zero.has-revision {
-  background-color: var(--text-muted) !important;
+  background-color: var(--text-accent) !important; /* Use accent color instead of muted */
+  opacity: 1 !important;
 }
 
 .revision-dot.overdue {
@@ -263,15 +264,23 @@ If your plugin does not need CSS, delete this file.
   display: flex;
   width: 8px;
   margin: 2px auto 0;
+  opacity: 1 !important;
 }
 
 .revision-dot.split-revision .revision-part {
   height: 3px;
   width: 4px; /* Half width */
+  opacity: 1 !important;
+}
+
+.revision-dot.split-revision .revision-part.stage-zero {
+  background-color: var(--color-zero) !important;
+  opacity: 1 !important;
 }
 
 .revision-dot.split-revision .has-revision-part {
-  background-color: var(--text-muted); /* Off-month color for revisions > 0 */
+  background-color: var(--text-accent) !important; /* Change to accent color instead of muted */
+  opacity: 1 !important;
 }
 
 /* Legend styling */
@@ -293,62 +302,41 @@ If your plugin does not need CSS, delete this file.
 }
 
 .legend-swatch {
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   margin-right: 4px;
-  border-radius: 2px;
-}
-
-.legend-label {
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Legend swatch styles with matching colors */
-.legend-swatch.zero-color,
-.legend-swatch.stage-zero {
-  background-color: var(--color-zero) !important;
-}
-
-.legend-swatch.author-color,
-.legend-swatch.stage-author {
-  background-color: var(--color-author) !important;
-}
-
-.legend-swatch.house-color,
-.legend-swatch.stage-house {
-  background-color: var(--color-house) !important;
-}
-
-.legend-swatch.press-color,
-.legend-swatch.stage-press {
-  background-color: var(--color-press) !important;
-}
-
-/* Legend styles continued */
-.legend-swatch.revision-has-revision {
-  background-color: var(--text-muted);
-}
-
-.legend-swatch.revision-split {
   display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.legend-swatch.revision-split .split-part {
-  height: 6px;
-  width: 3px;
+.legend-swatch svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2px;
+  opacity: 1 !important;
 }
 
-.legend-swatch.revision-split .zero-part {
-  background-color: var(--color-zero);
+.legend-swatch.stage-zero svg {
+  stroke: var(--color-zero) !important;
+  fill: none;
 }
 
-.legend-swatch.revision-split .nonzero-part {
-  background-color: var(--text-muted);
+.legend-swatch.stage-author svg {
+  stroke: var(--color-author) !important;
+  fill: none;
 }
 
-/* Legend swatch colors - nth-child selectors are removed as we now use stage-specific classes */
+.legend-swatch.stage-house svg {
+  stroke: var(--color-house) !important;
+  fill: none;
+}
+
+.legend-swatch.stage-press svg {
+  stroke: var(--color-press) !important;
+  fill: none;
+}
+
 /* Legend label styles */
 .legend-label {
   font-size: 0.7em;
@@ -357,6 +345,25 @@ If your plugin does not need CSS, delete this file.
   white-space: nowrap;
   margin: 0;
   padding: 0;
+  font-weight: 600;
+}
+
+/* Improve legend container */
+.legend-container {
+  margin-top: 10px;
+}
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--background-secondary-alt);
+  border-radius: 4px;
+  padding: 8px;
+  margin: 0 auto;
+  max-width: fit-content;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 @media (max-width: 600px) {
@@ -500,64 +507,54 @@ tr.week-with-scenes td {
 
 /* Calendar tooltip styles */
 .calendar-tooltip {
-  background-color: var(--background-primary);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  padding: 10px;
-  font-size: 12px;
-  max-width: 250px;
-  max-height: 300px;
-  overflow-y: auto;
+  position: absolute;
   z-index: 1000;
-  pointer-events: none; /* Let mouse events pass through */
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  max-width: 280px;
+  left: var(--tooltip-left, 0);
+  top: var(--tooltip-top, 0);
 }
 
-/* Tooltip positioning class */
 .tooltip-positioning {
   position: absolute;
-  left: var(--tooltip-left);
-  top: var(--tooltip-top);
+  z-index: 1000;
 }
 
 .calendar-tooltip h4 {
-  margin: 0 0 5px;
+  margin: 0 0 4px 0;
   font-size: 13px;
   font-weight: 600;
-  border-bottom: 1px solid var(--background-modifier-border);
-  padding-bottom: 3px;
 }
 
 .calendar-tooltip ul {
-  margin: 0;
-  padding-left: 15px;
+  margin: 0 0 8px 0;
+  padding-left: 18px;
 }
 
 .calendar-tooltip li {
-  margin-bottom: 3px;
-  line-height: 1.3;
-  list-style-type: disc;
+  margin-bottom: 2px;
 }
 
-/* Tooltip sections for different note types */
-.tooltip-section {
-  margin-bottom: 10px;
+.tooltip-section + .tooltip-section {
+  margin-top: 8px;
 }
 
-.tooltip-section:last-child {
-  margin-bottom: 0;
-}
-
-/* Overdue section styling */
+/* Style for overdue section */
 .overdue-section h4 {
   color: var(--color-overdue);
 }
 
-.overdue-section li {
-  color: var(--color-overdue);
+/* Style for due section */
+.due-section h4 {
+  color: var(--color-future);
 }
 
-/* Completed section - notes will use their stage colors */
 .completed-section li.stage-zero {
   color: var(--color-zero);
 }
@@ -574,7 +571,16 @@ tr.week-with-scenes td {
   color: var(--color-press);
 }
 
-/* Future todos section */
 .future-section li {
   color: var(--color-future);
+}
+
+/* Placeholder dot for consistent vertical alignment */
+.revision-dot.placeholder-dot {
+  visibility: hidden;
+  height: 3px;
+  width: 3px;
+  display: block;
+  margin: 2px auto 0;
+  border-radius: 50%;
 }
