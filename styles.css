@@ -9,10 +9,10 @@ If your plugin does not need CSS, delete this file.
 
 /* Define color variables for unified color management */
 .manuscript-calendar-view {
-  --color-zero: #9E70CF;    /* Purple for Zero stage */
-  --color-first: #5E85CF;   /* Blue for Author stage */
-  --color-editing: #DA7847; /* Orange for House stage */
-  --color-press: #6FB971;   /* Green for Press stage */
+  --color-zero: #9E70CF;    /* Purple for ZERO stage */
+  --color-author: #5E85CF;  /* Blue for AUTHOR stage */
+  --color-house: #DA7847;   /* Orange for HOUSE stage */
+  --color-press: #6FB971;   /* Green for PRESS stage */
   --color-overdue: #CC3333; /* Red for overdue items */
   --color-future: #888888;  /* Medium gray for future Todo */
   
@@ -213,11 +213,11 @@ If your plugin does not need CSS, delete this file.
 }
 
 .revision-dot.stage-author {
-  background-color: var(--color-first) !important;
+  background-color: var(--color-author) !important;
 }
 
 .revision-dot.stage-house {
-  background-color: var(--color-editing) !important;
+  background-color: var(--color-house) !important;
 }
 
 .revision-dot.stage-press {
@@ -232,12 +232,12 @@ If your plugin does not need CSS, delete this file.
 
 .legend-swatch.author-color,
 .legend-swatch.stage-author {
-  background-color: var(--color-first) !important;
+  background-color: var(--color-author) !important;
 }
 
 .legend-swatch.house-color,
 .legend-swatch.stage-house {
-  background-color: var(--color-editing) !important;
+  background-color: var(--color-house) !important;
 }
 
 .legend-swatch.press-color,
@@ -313,12 +313,12 @@ If your plugin does not need CSS, delete this file.
 
 .legend-swatch.author-color,
 .legend-swatch.stage-author {
-  background-color: var(--color-first) !important;
+  background-color: var(--color-author) !important;
 }
 
 .legend-swatch.house-color,
 .legend-swatch.stage-house {
-  background-color: var(--color-editing) !important;
+  background-color: var(--color-house) !important;
 }
 
 .legend-swatch.press-color,
