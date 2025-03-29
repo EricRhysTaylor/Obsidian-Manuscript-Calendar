@@ -491,3 +491,90 @@ tr.week-with-scenes td {
 .calendar-legend-separator {
   display: none; /* Hide the separator completely */
 }
+
+/* CSS variables for tooltip positioning */
+:root {
+  --tooltip-left: 0px;
+  --tooltip-top: 0px;
+}
+
+/* Calendar tooltip styles */
+.calendar-tooltip {
+  background-color: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 10px;
+  font-size: 12px;
+  max-width: 250px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  pointer-events: none; /* Let mouse events pass through */
+}
+
+/* Tooltip positioning class */
+.tooltip-positioning {
+  position: absolute;
+  left: var(--tooltip-left);
+  top: var(--tooltip-top);
+}
+
+.calendar-tooltip h4 {
+  margin: 0 0 5px;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: 3px;
+}
+
+.calendar-tooltip ul {
+  margin: 0;
+  padding-left: 15px;
+}
+
+.calendar-tooltip li {
+  margin-bottom: 3px;
+  line-height: 1.3;
+  list-style-type: disc;
+}
+
+/* Tooltip sections for different note types */
+.tooltip-section {
+  margin-bottom: 10px;
+}
+
+.tooltip-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Overdue section styling */
+.overdue-section h4 {
+  color: var(--color-overdue);
+}
+
+.overdue-section li {
+  color: var(--color-overdue);
+}
+
+/* Completed section - notes will use their stage colors */
+.completed-section li.stage-zero {
+  color: var(--color-zero);
+}
+
+.completed-section li.stage-author {
+  color: var(--color-author);
+}
+
+.completed-section li.stage-house {
+  color: var(--color-house);
+}
+
+.completed-section li.stage-press {
+  color: var(--color-press);
+}
+
+/* Future todos section */
+.future-section li {
+  color: var(--color-future);
+}

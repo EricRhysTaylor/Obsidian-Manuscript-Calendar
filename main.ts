@@ -920,6 +920,159 @@ class ManuscriptCalendarView extends ItemView {
                     
                     // Make cell clickable to open the scenes for this date
                     if (notesByDate.has(dateKey)) {
+                        // Get notes for this date
+                        const notes = notesByDate.get(dateKey);
+                        
+                        // Create tooltip for this cell
+                        if (notes && notes.length > 0) {
+                            // Find overdue and completed notes
+                            const overdueNotes = notes.filter(note => {
+                                const status = note.Status;
+                                const isComplete = status && (
+                                    Array.isArray(status) 
+                                        ? status.includes("Complete") 
+                                        : status === "Complete"
+                                );
+                                return !isComplete;
+                            });
+                            
+                            const completedNotes = notes.filter(note => {
+                                const status = note.Status;
+                                const isComplete = status && (
+                                    Array.isArray(status) 
+                                        ? status.includes("Complete") 
+                                        : status === "Complete"
+                                );
+                                return isComplete;
+                            });
+                            
+                            // Add mouseover event to show tooltip
+                            dayCell.addEventListener('mouseover', (event) => {
+                                // Remove any existing tooltips
+                                const existingTooltip = document.querySelector('.calendar-tooltip');
+                                if (existingTooltip) {
+                                    existingTooltip.remove();
+                                }
+                                
+                                // Create tooltip element using DOM methods
+                                const tooltip = document.createElement('div');
+                                tooltip.classList.add('calendar-tooltip');
+                                
+                                // Show overdue notes first with red color
+                                if (overdueNotes.length > 0) {
+                                    const overdueSection = document.createElement('div');
+                                    overdueSection.classList.add('tooltip-section', 'overdue-section');
+                                    
+                                    const overdueHeading = document.createElement('h4');
+                                    overdueHeading.textContent = 'Overdue:';
+                                    overdueSection.appendChild(overdueHeading);
+                                    
+                                    const overdueList = document.createElement('ul');
+                                    overdueNotes.forEach(note => {
+                                        const listItem = document.createElement('li');
+                                        // Get filename from path and remove .md extension
+                                        const filename = note.file.path.split('/').pop()?.replace(/\.md$/, '') || 'Unknown';
+                                        listItem.textContent = filename;
+                                        overdueList.appendChild(listItem);
+                                    });
+                                    
+                                    overdueSection.appendChild(overdueList);
+                                    tooltip.appendChild(overdueSection);
+                                }
+                                
+                                // Show completed notes with their stage color
+                                if (completedNotes.length > 0) {
+                                    const completedSection = document.createElement('div');
+                                    completedSection.classList.add('tooltip-section', 'completed-section');
+                                    
+                                    const completedHeading = document.createElement('h4');
+                                    completedHeading.textContent = 'Completed:';
+                                    completedSection.appendChild(completedHeading);
+                                    
+                                    const completedList = document.createElement('ul');
+                                    completedNotes.forEach(note => {
+                                        const listItem = document.createElement('li');
+                                        const publishStage = note["Publish Stage"] || "ZERO";
+                                        const stageClass = publishStage.toString().toUpperCase() === "ZERO" ? "stage-zero" : 
+                                                          publishStage.toString().toUpperCase() === "AUTHOR" ? "stage-author" :
+                                                          publishStage.toString().toUpperCase() === "HOUSE" ? "stage-house" :
+                                                          publishStage.toString().toUpperCase() === "PRESS" ? "stage-press" : "";
+                                        
+                                        if (stageClass) {
+                                            listItem.classList.add(stageClass);
+                                        }
+                                        
+                                        // Get filename from path and remove .md extension
+                                        const filename = note.file.path.split('/').pop()?.replace(/\.md$/, '') || 'Unknown';
+                                        listItem.textContent = filename;
+                                        completedList.appendChild(listItem);
+                                    });
+                                    
+                                    completedSection.appendChild(completedList);
+                                    tooltip.appendChild(completedSection);
+                                }
+                                
+                                // If we have future todos but no overdue or completed notes
+                                if (tooltip.childElementCount === 0 && isFutureTask) {
+                                    const futureSection = document.createElement('div');
+                                    futureSection.classList.add('tooltip-section', 'future-section');
+                                    
+                                    const futureHeading = document.createElement('h4');
+                                    futureHeading.textContent = 'Future Todos:';
+                                    futureSection.appendChild(futureHeading);
+                                    
+                                    const futureList = document.createElement('ul');
+                                    notes.forEach(note => {
+                                        const listItem = document.createElement('li');
+                                        // Get filename from path and remove .md extension
+                                        const filename = note.file.path.split('/').pop()?.replace(/\.md$/, '') || 'Unknown';
+                                        listItem.textContent = filename;
+                                        futureList.appendChild(listItem);
+                                    });
+                                    
+                                    futureSection.appendChild(futureList);
+                                    tooltip.appendChild(futureSection);
+                                }
+                                
+                                // Only add the tooltip if it has content
+                                if (tooltip.childElementCount > 0) {
+                                    // Add tooltip to document
+                                    document.body.appendChild(tooltip);
+                                    
+                                    // Add CSS class to position tooltip (defined in styles.css)
+                                    tooltip.classList.add('tooltip-positioning');
+                                    
+                                    // Use the initial mouse position to update the custom properties
+                                    const mouseEvent = event as MouseEvent;
+                                    updateTooltipPosition(tooltip, mouseEvent);
+                                }
+                            });
+                            
+                            // Remove tooltip on mouseout
+                            dayCell.addEventListener('mouseout', () => {
+                                const tooltip = document.querySelector('.calendar-tooltip');
+                                if (tooltip) {
+                                    tooltip.remove();
+                                }
+                            });
+                            
+                            // Keep the tooltip positioned with the mouse as it moves within the cell
+                            dayCell.addEventListener('mousemove', (event) => {
+                                const tooltip = document.querySelector('.calendar-tooltip');
+                                if (tooltip) {
+                                    const mouseEvent = event as MouseEvent;
+                                    updateTooltipPosition(tooltip, mouseEvent);
+                                }
+                            });
+                            
+                            // Helper function to update tooltip position via CSS variables
+                            function updateTooltipPosition(tooltip: Element, event: MouseEvent) {
+                                const root = document.documentElement;
+                                root.style.setProperty('--tooltip-left', `${event.pageX + 10}px`);
+                                root.style.setProperty('--tooltip-top', `${event.pageY + 10}px`);
+                            }
+                        }
+                        
                         dayCell.addEventListener('click', async () => {
                             const notes = notesByDate.get(dateKey);
                             if (notes && notes.length > 0) {
