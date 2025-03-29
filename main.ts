@@ -14,6 +14,19 @@ const DEFAULT_SETTINGS: ManuscriptCalendarSettings = {
     manuscriptFolder: ''
 };
 
+// Extend the App interface to include plugins
+declare module 'obsidian' {
+    interface App {
+        plugins: {
+            plugins: {
+                dataview?: {
+                    api: DataviewAPI;
+                };
+            };
+        };
+    }
+}
+
 // Define DataviewAPI interface for type safety
 interface DataviewAPI {
     pages: (query?: string) => Promise<any[]>;
@@ -94,15 +107,15 @@ export default class ManuscriptCalendarPlugin extends Plugin {
                         // Force Dataview to update its cache for this file
                         if (this.app.plugins.plugins.dataview && 
                             this.app.plugins.plugins.dataview.api &&
-                            (this.app.plugins.plugins.dataview.api as DataviewAPI).index) {
-                            (this.app.plugins.plugins.dataview.api as DataviewAPI).index.touch();
+                            this.app.plugins.plugins.dataview.api.index) {
+                            this.app.plugins.plugins.dataview.api.index.touch();
                         }
                         
                         // Update all instances of the calendar view
                         this.app.workspace.getLeavesOfType(VIEW_TYPE_MANUSCRIPT_CALENDAR).forEach(leaf => {
                             if (leaf.view instanceof ManuscriptCalendarView) {
                                 // Use the dedicated refresh method that only updates what's necessary
-                                leaf.view.refreshCalendar();
+                                (leaf.view as ManuscriptCalendarView).refreshCalendar();
                                 // console.log("Calendar refreshed due to file change");
                             }
                         });
@@ -162,7 +175,7 @@ export default class ManuscriptCalendarPlugin extends Plugin {
         // After saving settings, update all open calendar views
         this.app.workspace.getLeavesOfType(VIEW_TYPE_MANUSCRIPT_CALENDAR).forEach(leaf => {
             if (leaf.view instanceof ManuscriptCalendarView) {
-                leaf.view.refreshCalendar();
+                (leaf.view as ManuscriptCalendarView).refreshCalendar();
             }
         });
     }
@@ -171,13 +184,18 @@ export default class ManuscriptCalendarPlugin extends Plugin {
         const { workspace } = this.app;
         let leaf = workspace.getLeavesOfType(VIEW_TYPE_MANUSCRIPT_CALENDAR)[0];
         if (!leaf) {
-            leaf = workspace.getRightLeaf(false);
-            await leaf.setViewState({
-                type: VIEW_TYPE_MANUSCRIPT_CALENDAR,
-                active: true,
-            });
+            const newLeaf = workspace.getRightLeaf(false);
+            if (newLeaf) {
+                leaf = newLeaf;
+                await leaf.setViewState({
+                    type: VIEW_TYPE_MANUSCRIPT_CALENDAR,
+                    active: true,
+                });
+            }
         }
-        workspace.revealLeaf(leaf);
+        if (leaf) {
+            workspace.revealLeaf(leaf);
+        }
     }
 }
 
@@ -275,8 +293,9 @@ class ManuscriptCalendarView extends ItemView {
         }
     }
 
-    async onClose(): Promise<boolean> {
-        return true;
+    async onClose(): Promise<void> {
+        // Return void instead of boolean to match the interface
+        return;
     }
 
     async renderCalendar(): Promise<void> {
@@ -468,7 +487,7 @@ class ManuscriptCalendarView extends ItemView {
         try {
             // Check if Dataview plugin is available
             if (this.app.plugins.plugins.dataview) {
-                const dataviewApi = this.app.plugins.plugins.dataview.api as DataviewAPI;
+                const dataviewApi = this.app.plugins.plugins.dataview.api;
                 
                 // Get folder path from settings and clean it up
                 const rawFolderPath = this.plugin.settings.manuscriptFolder;
@@ -577,9 +596,9 @@ class ManuscriptCalendarView extends ItemView {
                     let dueDate: Date;
                     try {
                         // Extract date from link if needed
-                        let rawDate = typeof page.Due === 'object' && page.Due.path 
+                        let rawDate: string = typeof page.Due === 'object' && page.Due.path 
                             ? page.Due.path 
-                            : page.Due;
+                            : page.Due as string;
                         dueDate = new Date(rawDate);
                         
                         if (isNaN(dueDate.getTime())) return;
@@ -594,7 +613,10 @@ class ManuscriptCalendarView extends ItemView {
                             if (!notesByDate.has(dateKey)) {
                                 notesByDate.set(dateKey, []);
                             }
-                            notesByDate.get(dateKey)?.push(page);
+                            const notes = notesByDate.get(dateKey);
+                            if (notes) {
+                                notes.push(page);
+                            }
                         }
                     } catch (error) {
                         return;
