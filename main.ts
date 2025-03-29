@@ -737,6 +737,9 @@ class ManuscriptCalendarView extends ItemView {
                         // If the publishStage is one of the legacy values, convert it
                         if (publishStage in stageMap) {
                             publishStage = stageMap[publishStage as keyof typeof stageMap];
+                        } else {
+                            // Normalize to uppercase for consistent checking
+                            publishStage = publishStage.toString().toUpperCase();
                         }
                         
                         // Add to revisionMap
@@ -865,6 +868,10 @@ class ManuscriptCalendarView extends ItemView {
                                 { stage: "PRESS", cls: "stage-press" }
                             ];
                             
+                            // Debug log for stagesForDate
+                            console.log(`Date ${dateKey} has stages:`, Array.from(stagesForDate));
+                            console.log(`Stage checks:`, stageChecks);
+                            
                             // Also add support for legacy values for backward compatibility
                             const stageCheckMap = {
                                 "Zero": "ZERO",
@@ -880,6 +887,8 @@ class ManuscriptCalendarView extends ItemView {
                                         key => stageCheckMap[key as keyof typeof stageCheckMap] === check.stage
                                     ) || "")) {
                                     // Create dot for this stage
+                                    console.log(`Adding dot for stage ${check.stage}`);
+                                    
                                     const revisionDot = dayCell.createDiv({
                                         cls: `revision-dot ${check.cls}`
                                     });
