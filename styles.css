@@ -7,634 +7,485 @@ If your plugin does not need CSS, delete this file.
 
 */
 
-/* Define color variables for unified color management */
+/* Base Calendar Variables and Colors */
+:root {
+    --color-zero: #b070e0;     /* Purple for stage zero */
+    --color-author: #4ea0fd;   /* Blue for author stage */
+    --color-house: #ffb626;    /* Orange for house stage */
+    --color-press: #57c176;    /* Green for press stage */
+    --color-overdue: #d95353;  /* Red for overdue items */
+    --color-future: #8e8e8e;   /* Grey for future todos */
+    --tooltip-left: 0px;       /* For tooltip positioning */
+    --tooltip-top: 0px;        /* For tooltip positioning */
+}
+
+/* CALENDAR CONTAINER AND LAYOUT */
 .manuscript-calendar-view {
-  --color-zero: #9E70CF;    /* Purple for ZERO stage */
-  --color-author: #5E85CF;  /* Blue for AUTHOR stage */
-  --color-house: #DA7847;   /* Orange for HOUSE stage */
-  --color-press: #6FB971;   /* Green for PRESS stage */
-  --color-overdue: #CC3333; /* Red for overdue items */
-  --color-future: #888888;  /* Medium gray for future Todo */
-  
-  padding: 8px;
-  overflow-y: auto;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+    padding: 0 1rem 2rem 1rem;
+    overflow-x: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
-/* Future Todo styles */
-.manuscript-calendar-view .future-todo {
-  color: var(--text-muted);
-}
-
-.manuscript-calendar-view .future-todo-dot {
-  background-color: var(--color-future);
-}
-
-/* Hide the h3 title */
-.manuscript-calendar-view h3 {
-  display: none;
-}
-
-/* Calendar controls */
+/* CALENDAR CONTROLS */
 .calendar-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-  border-bottom: none; /* Remove bottom border */
-  padding-bottom: 4px; /* Reduced from 8px to 4px */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--background-modifier-border);
 }
 
-/* Month selector - rearranged layout */
 .month-selector {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    position: relative;
 }
 
-/* Month display styling - moved to left */
 .month-selector span {
-  font-size: 22.5px;
-  position: relative;
-  margin-right: auto; /* Push to left */
+    font-weight: 500;
+    font-size: 1.1rem;
 }
 
-/* Make the month name bold */
 .month-selector span::before {
-  content: attr(data-month);
-  font-weight: bold;
-  margin-right: 5px;
+    content: attr(data-month);
+    margin-right: 5px;
 }
 
-/* Make the year semi-transparent */
 .month-selector span::after {
-  content: attr(data-year);
-  font-weight: normal;
-  opacity: 1; /* Changed from 0.7 to 1 - full opacity, no transparency */
-  color: var(--alternating-color-1, var(--text-accent)); /* Use theme alternating color with fallback */
+    content: attr(data-year);
 }
 
-/* Navigation buttons - tighter spacing */
-.month-selector .nav-buttons {
-  display: flex;
-  align-items: center;
-  white-space: nowrap; /* Prevent wrapping */
+.nav-buttons {
+    display: flex;
+    gap: 4px;
+    align-items: center;
 }
 
-/* Flat buttons without bevels - force zero padding and no background */
-.month-selector button,
-.manuscript-calendar-view button {
-  background: transparent !important; /* Use transparent instead of none */
-  border: none !important;
-  cursor: pointer !important;
-  padding: 0 !important; /* Force zero padding */
-  margin: 0 !important; /* Force zero margin */
-  font-size: 16px !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-  min-width: 20px !important;
-  text-align: center !important;
-  line-height: 1 !important;
-  height: auto !important;
+.nav-buttons button,
+.calendar-header button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s;
 }
 
-/* Today button - flat style with minimal spacing */
-.today-button,
-.manuscript-calendar-view .today-button {
-  text-transform: uppercase !important;
-  background: transparent !important; /* Use transparent instead of none */
-  border: none !important;
-  font-size: 12px !important;
-  cursor: pointer !important;
-  letter-spacing: 1px !important;
-  padding: 0 !important; /* Force zero padding */
-  margin: 0 2px !important; /* Only horizontal margin */
-  box-shadow: none !important;
-  border-radius: 0 !important;
-  white-space: nowrap !important;
-  line-height: 1 !important;
-  height: auto !important;
-  position: relative !important;
-  top: 1px !important;
+.nav-buttons button:hover,
+.calendar-header button:hover {
+    background-color: var(--background-modifier-hover);
+    color: var(--text-normal);
 }
 
-/* Add spacing between navigation elements with margins instead of padding */
-.month-selector .nav-buttons button:not(.today-button) {
-  margin: 0 4px !important;
+.today-button {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 4px 8px !important;
+    border-radius: 4px;
+    background-color: var(--background-secondary) !important;
+    color: var(--text-normal);
+    transition: background-color 0.2s, color 0.2s;
 }
 
-/* Calendar table */
+.today-button:hover {
+    background-color: var(--background-modifier-hover) !important;
+    color: var(--text-accent) !important;
+}
+
+/* CALENDAR TABLE STYLING */
 .manuscript-calendar {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
+    margin-bottom: 0;
+    border-collapse: collapse;
+    border: none;
+    width: 100%;
+    table-layout: fixed; /* Ensure equal cell widths */
 }
 
-/* Header row */
-.manuscript-calendar th {
-  text-align: center;
-  padding: 4px;
-  font-size: 9px;
-  font-weight: bold; /* Make headers bold to ensure visibility */
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  opacity: 1; /* Full opacity for all headers */
-  color: var(--text-normal); /* Ensure headers use normal text color */
-  background-color: transparent; /* Remove background color */
-  border-bottom: none; /* Remove bottom border */
-}
-
-/* Week number header - match day headers */
-.manuscript-calendar th.week-number {
-  text-align: center;
-  font-size: 9px;
-  font-weight: normal;
-  border-right: 1px solid var(--background-modifier-border-hover);
-  opacity: 1; /* Match other headers */
-}
-
-/* Week number cells - keep darker */
-.manuscript-calendar td.week-number {
-  border-right: 1px solid var(--background-modifier-border-hover);
-  opacity: 0.5; /* Make week numbers darker like off-month days */
-  text-align: center;
-  font-size: 9px;
-}
-
-/* Day cells */
+.manuscript-calendar th,
 .manuscript-calendar td {
-  text-align: center;
-  padding: 8px 4px;
-  height: 32px;
-  position: relative;
-  font-size: 12px;
+    text-align: center;
+    padding: 4px 2px;
+    font-size: 0.85rem;
+    border: none;
+    height: 30px; /* Standardized cell height */
+    position: relative;
+    vertical-align: top; /* Align text to top */
 }
 
-/* Today highlight */
-.manuscript-calendar .today {
-  font-weight: bold;
-  position: relative;
-  opacity: 1 !important; /* Ensure today is always fully visible */
+.manuscript-calendar th {
+    padding-bottom: 8px;
+    font-size: 0.65rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    height: auto; /* Override height for header cells */
 }
 
-.manuscript-calendar .today::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 4px;
-  z-index: -1;
+.week-number {
+    color: var(--text-faint);
+    font-size: 0.65rem !important;
 }
 
-/* Days from other months - increased transparency to 50% */
-.manuscript-calendar .other-month {
-  opacity: 0.5;
+.manuscript-calendar td {
+    width: calc(100% / 7);
+    border-radius: 4px;
+    padding-top: 6px; /* Consistent top padding */
+    line-height: 1;
 }
 
-/* Update the revision dot size to 8px wide and 3px tall */
-.revision-dot {
-  width: 8px;
-  height: 3px;
-  border-radius: 0; /* Remove border-radius for rectangular shape */
-  margin: 2px auto 0;
-  display: block;
-  background-color: transparent; /* Default transparent background as placeholder */
+.manuscript-calendar td.other-month {
+    color: var(--text-faint);
 }
 
-/* Stage colors - single source of truth */
-.revision-dot.stage-zero {
-  background-color: var(--color-zero) !important;
+.manuscript-calendar td.today {
+    background-color: var(--background-secondary);
+    font-weight: 600;
 }
 
-.revision-dot.stage-author {
-  background-color: var(--color-author) !important;
-}
-
-.revision-dot.stage-house {
-  background-color: var(--color-house) !important;
-}
-
-.revision-dot.stage-press {
-  background-color: var(--color-press) !important;
-}
-
-/* Legend swatch styles with matching colors */
-.legend-swatch.zero-color,
-.legend-swatch.stage-zero {
-  background-color: var(--color-zero) !important;
-}
-
-.legend-swatch.author-color,
-.legend-swatch.stage-author {
-  background-color: var(--color-author) !important;
-}
-
-.legend-swatch.house-color,
-.legend-swatch.stage-house {
-  background-color: var(--color-house) !important;
-}
-
-.legend-swatch.press-color,
-.legend-swatch.stage-press {
-  background-color: var(--color-press) !important;
-}
-
-/* Special handling for Zero stage with revision > 0 */
-.revision-dot.stage-zero.has-revision {
-  background-color: var(--text-accent) !important; /* Use accent color instead of muted */
-  opacity: 1 !important;
-}
-
-.revision-dot.overdue {
-  background-color: var(--color-overdue) !important;
-}
-
-.revision-dot.future-todo-dot {
-  background-color: var(--color-future) !important;
-}
-
-/* Split revision indicator when both revision 0 and higher revisions exist */
-.revision-dot.split-revision {
-  display: flex;
-  width: 8px;
-  margin: 2px auto 0;
-  opacity: 1 !important;
-}
-
-.revision-dot.split-revision .revision-part {
-  height: 3px;
-  width: 4px; /* Half width */
-  opacity: 1 !important;
-}
-
-.revision-dot.split-revision .revision-part.stage-zero {
-  background-color: var(--color-zero) !important;
-  opacity: 1 !important;
-}
-
-.revision-dot.split-revision .has-revision-part {
-  background-color: var(--text-accent) !important; /* Change to accent color instead of muted */
-  opacity: 1 !important;
-}
-
-/* Legend styling */
-.legend-wrapper {
-  margin-top: 8px;
-}
-
-/* Main legend container - enhanced with background and shadow */
-.calendar-legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-  background-color: var(--background-secondary-alt);
-  border-radius: 4px;
-  padding: 10px;
-  margin: 0 auto;
-  max-width: fit-content;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-/* Legend items */
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin: 0;
-  opacity: 1 !important;
-}
-
-/* SVG icon container - pure icons without background */
-.legend-swatch {
-  width: 20px;
-  height: 20px;
-  margin-right: 6px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: transparent !important;
-  position: relative; /* Important for icons positioning */
-}
-
-/* Special fix for Zero stage icon - hide the original SVG */
-.legend-swatch.stage-zero svg {
-  display: none;
-}
-
-/* Create circle-slash using pure CSS for Zero stage */
-.legend-swatch.stage-zero::after {
-  content: '';
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid var(--color-zero);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.legend-swatch.stage-zero::before {
-  content: '';
-  position: absolute;
-  width: 18px;
-  height: 2px;
-  background-color: var(--color-zero);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(45deg);
-  z-index: 1;
-}
-
-/* Remove all legacy background colors from legend swatches */
-.legend-swatch.zero-color,
-.legend-swatch.stage-zero,
-.legend-swatch.author-color,
-.legend-swatch.stage-author,
-.legend-swatch.house-color,
-.legend-swatch.stage-house,
-.legend-swatch.press-color,
-.legend-swatch.stage-press {
-  background-color: transparent !important;
-}
-
-/* SVG icons styling - larger and more visible */
-.legend-swatch svg {
-  width: 18px;
-  height: 18px;
-  stroke-width: 2px;
-  opacity: 1 !important;
-}
-
-/* Make the House stage icon (graduation cap) larger */
-.legend-swatch.stage-house svg {
-  width: 20px;
-  height: 20px;
-  stroke-width: 1.8px;
-  transform: translateY(-1px); /* Adjust vertical alignment */
-}
-
-/* SVG icon colors for each stage */
-.legend-swatch.stage-zero svg {
-  stroke: var(--color-zero) !important;
-  fill: none;
-}
-
-.legend-swatch.stage-author svg {
-  stroke: var(--color-author) !important;
-  fill: none;
-}
-
-.legend-swatch.stage-house svg {
-  stroke: var(--color-house) !important;
-  fill: none;
-}
-
-.legend-swatch.stage-press svg {
-  stroke: var(--color-press) !important;
-  fill: none;
-}
-
-/* Legend label */
-.legend-label {
-  font-size: 0.75em;
-  text-transform: uppercase;
-  letter-spacing: 0px;
-  white-space: nowrap;
-  margin: 0;
-  padding: 0;
-  font-weight: 600;
-  color: var(--text-normal);
-}
-
-/* Responsive adjustments */
-@media (max-width: 600px) {
-  .calendar-legend {
-    flex-wrap: wrap;
-  }
-  .legend-item {
-    flex: 0 0 auto;
-    margin-bottom: 4px;
-  }
-}
-
+/* CLICKABLE CELLS */
 td.clickable-cell {
-  cursor: pointer;
-  position: relative;
-  z-index: 1;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
 }
 
 td.clickable-cell:hover::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--background-modifier-hover);
-  border-radius: 4px;
-  z-index: -1;
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--background-modifier-hover);
+    border-radius: 4px;
+    z-index: -1;
 }
 
-.date-link {
-  text-decoration: none; /* Already none, making sure it stays that way */
-  color: var(--text-normal);
-  cursor: pointer;
+/* SCENE INDICATORS - RECTANGLES */
+.revision-dot {
+    height: 3px;
+    width: 14px;
+    border-radius: 0;
+    display: block;
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
-.date-link:hover {
-  text-decoration: none; /* Changed from underline to none */
-  color: var(--text-accent);
+.revision-dot.placeholder-dot {
+    height: 3px;
+    width: 14px;
+    display: block;
+    border-radius: 0;
+    background-color: var(--text-normal);
+    opacity: 0.15;
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
-.nav-buttons button svg,
-.calendar-header button svg {
-  width: 16px;
-  height: 16px;
-  display: block;
-  stroke-width: 2px;
-  stroke: var(--text-muted);
-  transition: stroke 0.2s;
+.revision-dot.placeholder-dot.hidden {
+    opacity: 0;
 }
 
-.manuscript-calendar-view .calendar-header .nav-button svg,
-.manuscript-calendar-view .month-selector .nav-button svg {
-  width: 16px;
-  height: 16px;
-  stroke-width: 2px;
-  stroke: var(--text-normal);
+.revision-dot.overdue {
+    background-color: var(--color-overdue);
 }
 
-.calendar-header .today-button {
-  color: var(--text-muted);
+.revision-dot.future-todo-dot {
+    background-color: var(--color-future);
 }
 
+.revision-dot.stage-zero {
+    background-color: var(--color-zero);
+}
+
+.revision-dot.stage-author {
+    background-color: var(--color-author);
+}
+
+.revision-dot.stage-house {
+    background-color: var(--color-house);
+}
+
+.revision-dot.stage-press {
+    background-color: var(--color-press);
+}
+
+/* SPLIT DOTS */
+.revision-dot.split-revision {
+    display: flex;
+    width: 14px;
+    height: 3px;
+    padding: 0;
+    border-radius: 0;
+    overflow: hidden;
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.revision-part {
+    width: 50%;
+    height: 100%;
+}
+
+.revision-part.stage-zero {
+    background-color: var(--color-zero);
+}
+
+.revision-part.has-revision-part {
+    background-color: var(--text-muted);
+}
+
+/* LEGEND STYLING */
+.calendar-legend-separator {
+    display: none;
+}
+
+.legend-container {
+    margin-top: 0.5rem;
+}
+
+.legend-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.calendar-legend {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background-color: var(--background-secondary);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin: 2px 0;
+}
+
+/* SVG ICONS IN LEGEND */
+.legend-swatch {
+    width: 20px;
+    height: 20px;
+    margin-right: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent !important;
+    position: relative;
+}
+
+.legend-swatch svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2px;
+    opacity: 1 !important;
+}
+
+/* STAGE ZERO - CIRCLE SLASH */
+.legend-swatch.stage-zero::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 3px;
+    background-color: var(--color-zero);
+    border-radius: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.legend-swatch.stage-zero svg,
+.legend-swatch.stage-zero::before {
+    display: none !important;
+}
+
+/* AUTHOR STAGE */
+.legend-swatch.stage-author::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 3px;
+    background-color: var(--color-author);
+    border-radius: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.legend-swatch.stage-author svg {
+    display: none !important;
+}
+
+/* HOUSE STAGE */
+.legend-swatch.stage-house::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 3px;
+    background-color: var(--color-house);
+    border-radius: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.legend-swatch.stage-house svg {
+    display: none !important;
+}
+
+/* PRESS STAGE */
+.legend-swatch.stage-press::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 3px;
+    background-color: var(--color-press);
+    border-radius: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.legend-swatch.stage-press svg {
+    display: none !important;
+}
+
+/* LEGEND LABELS */
+.legend-label {
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 0px;
+    white-space: nowrap;
+    margin: 0;
+    padding: 0;
+    font-weight: 600;
+    color: var(--text-normal);
+}
+
+/* RESPONSIVE LEGEND */
+@media (max-width: 600px) {
+    .calendar-legend {
+        flex-wrap: wrap;
+    }
+    .legend-item {
+        flex: 0 0 auto;
+        margin-bottom: 4px;
+    }
+}
+
+/* SVG ICONS STYLING */
 .nav-buttons button svg,
 .calendar-header button svg,
 .manuscript-calendar-view button svg {
-  width: 16px;
-  height: 16px;
-  display: block;
-  stroke-width: 2px !important;
-  stroke: var(--text-normal) !important;
-  fill: none !important;
-  transition: stroke 0.2s !important;
+    width: 16px;
+    height: 16px;
+    display: block;
+    stroke-width: 2px !important;
+    stroke: var(--text-normal) !important;
+    fill: none !important;
+    transition: stroke 0.2s !important;
 }
 
 .nav-buttons button:hover svg,
 .calendar-header button:hover svg,
 .manuscript-calendar-view button:hover svg {
-  stroke: var(--text-accent) !important;
+    stroke: var(--text-accent) !important;
 }
 
+/* STAGE SELECTOR STYLING */
 .stage-selector select:focus,
 .stage-selector select:active,
 .stage-selector select:hover {
-  border-color: var(--background-modifier-border-hover) !important;
-  box-shadow: none !important;
-}
-
-.stage-selector select::-moz-focus-inner {
-  border: 0 !important;
-}
-
-.stage-selector select:-moz-focusring {
-  outline: none !important;
+    border-color: var(--background-modifier-border-hover) !important;
+    box-shadow: none !important;
 }
 
 .stage-selector select:focus {
-  outline: none !important;
+    outline: none !important;
 }
 
-tr.week-with-scenes {
-  position: relative;
-  z-index: 1;
-}
-
-tr.week-with-scenes td {
-  position: relative;
-  z-index: 1;
-}
-
-.manuscript-calendar {
-  margin-bottom: 0;
-  border-collapse: collapse;
-  border: none;
-  width: 100%;
-}
-
-.manuscript-calendar th.week-number,
-.manuscript-calendar th {
-  font-weight: 400;
-}
-
-.legend-item .legend-swatch.stage-zero {
-  background-color: var(--color-zero) !important;
-}
-
-.manuscript-calendar-view .calendar-legend .legend-item .legend-swatch.stage-zero {
-  background-color: var(--color-zero) !important;
-}
-
-/* Remove horizontal rule between calendar and legend */
-.calendar-legend-separator {
-  display: none; /* Hide the separator completely */
-}
-
-/* CSS variables for tooltip positioning */
-:root {
-  --tooltip-left: 0px;
-  --tooltip-top: 0px;
-}
-
-/* Calendar tooltip styles */
+/* TOOLTIP STYLING */
 .calendar-tooltip {
-  position: absolute;
-  z-index: 1000;
-  background: var(--background-primary);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  min-width: 180px;
-  max-width: 280px;
-  left: var(--tooltip-left, 0);
-  top: var(--tooltip-top, 0);
+    position: absolute;
+    z-index: 1000;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-width: 180px;
+    max-width: 280px;
+    left: var(--tooltip-left, 0);
+    top: var(--tooltip-top, 0);
 }
 
 .tooltip-positioning {
-  position: absolute;
-  z-index: 1000;
+    position: absolute;
+    z-index: 1000;
 }
 
 .calendar-tooltip h4 {
-  margin: 0 0 4px 0;
-  font-size: 13px;
-  font-weight: 600;
+    margin: 0 0 4px 0;
+    font-size: 13px;
+    font-weight: 600;
 }
 
 .calendar-tooltip ul {
-  margin: 0 0 8px 0;
-  padding-left: 18px;
+    margin: 0 0 8px 0;
+    padding-left: 18px;
 }
 
 .calendar-tooltip li {
-  margin-bottom: 2px;
+    margin-bottom: 2px;
 }
 
 .tooltip-section + .tooltip-section {
-  margin-top: 8px;
+    margin-top: 8px;
 }
 
-/* Style for overdue section */
+/* TOOLTIP SECTIONS */
 .overdue-section h4 {
-  color: var(--color-overdue);
+    color: var(--color-overdue);
 }
 
-/* Style for due section */
 .due-section h4 {
-  color: var(--color-future);
+    color: var(--color-future);
 }
 
 .completed-section li.stage-zero {
-  color: var(--color-zero);
+    color: var(--color-zero);
 }
 
 .completed-section li.stage-author {
-  color: var(--color-author);
+    color: var(--color-author);
 }
 
 .completed-section li.stage-house {
-  color: var(--color-house);
+    color: var(--color-house);
 }
 
 .completed-section li.stage-press {
-  color: var(--color-press);
+    color: var(--color-press);
 }
 
 .future-section li {
-  color: var(--color-future);
-}
-
-/* Placeholder dot for consistent vertical alignment - visible by default */
-.revision-dot.placeholder-dot {
-  height: 3px;
-  width: 8px;
-  display: block;
-  margin: 2px auto 0;
-  border-radius: 0;
-  background-color: var(--text-normal);
-  opacity: 0.15; /* Slightly visible by default */
-}
-
-/* Hide placeholder when real dots are added */
-.revision-dot.placeholder-dot.hidden {
-  opacity: 0;
+    color: var(--color-future);
 }
