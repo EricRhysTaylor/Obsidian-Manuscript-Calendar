@@ -42,9 +42,9 @@ If your plugin does not need CSS, delete this file.
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   border-bottom: none; /* Remove bottom border */
-  padding-bottom: 8px;
+  padding-bottom: 4px; /* Reduced from 8px to 4px */
 }
 
 /* Month selector - rearranged layout */

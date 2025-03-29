@@ -883,12 +883,35 @@ class ManuscriptCalendarView extends ItemView {
                         dayCell.addEventListener('click', () => {
                             const notes = notesByDate.get(dateKey);
                             if (notes && notes.length > 0) {
-                                // Try to open the first note
                                 try {
-                                    const firstNote = notes[0];
-                                    const filePath = firstNote.file.path;
+                                    // Find the first overdue note for this date if there is one
+                                    let noteToOpen = null;
                                     
-                                    // Use Obsidian API to open the file
+                                    // Prioritize overdue notes
+                                    if (isOverdue) {
+                                        // Find the first overdue note
+                                        const overdueNote = notes.find(note => {
+                                            const status = note.Status;
+                                            const isNotComplete = status && (
+                                                Array.isArray(status) 
+                                                    ? !status.includes("Complete") 
+                                                    : status !== "Complete"
+                                            );
+                                            return isNotComplete;
+                                        });
+                                        
+                                        if (overdueNote) {
+                                            noteToOpen = overdueNote;
+                                        }
+                                    }
+                                    
+                                    // If no overdue note was found, use the first available note
+                                    if (!noteToOpen) {
+                                        noteToOpen = notes[0];
+                                    }
+                                    
+                                    // Open the selected note
+                                    const filePath = noteToOpen.file.path;
                                     this.app.workspace.openLinkText(filePath, '', false);
                                 } catch (error) {
                                     console.error("Error opening file:", error);
