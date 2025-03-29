@@ -138,10 +138,13 @@ If your plugin does not need CSS, delete this file.
   text-align: center;
   padding: 4px;
   font-size: 9px;
-  font-weight: normal;
+  font-weight: bold; /* Make headers bold to ensure visibility */
   text-transform: uppercase;
   letter-spacing: 0.5px;
   opacity: 1; /* Full opacity for all headers */
+  color: var(--text-normal); /* Ensure headers use normal text color */
+  background-color: var(--background-secondary); /* Add background color for better visibility */
+  border-bottom: 1px solid var(--background-modifier-border); /* Add border for definition */
 }
 
 /* Week number header - match day headers */
@@ -222,18 +225,22 @@ If your plugin does not need CSS, delete this file.
 }
 
 /* Legend swatch styles with matching colors */
+.legend-swatch.zero-color,
 .legend-swatch.stage-zero {
   background-color: var(--color-zero) !important;
 }
 
+.legend-swatch.author-color,
 .legend-swatch.stage-author {
   background-color: var(--color-first) !important;
 }
 
+.legend-swatch.house-color,
 .legend-swatch.stage-house {
   background-color: var(--color-editing) !important;
 }
 
+.legend-swatch.press-color,
 .legend-swatch.stage-press {
   background-color: var(--color-press) !important;
 }

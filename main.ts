@@ -6,7 +6,7 @@ interface ManuscriptCalendarSettings {
     defaultPublishStage?: string;
 }
 
-// Define constants
+// Define constants - Auto-copy test
 const VIEW_TYPE_MANUSCRIPT_CALENDAR = 'manuscript-calendar-view';
 
 // Define default settings
@@ -438,10 +438,10 @@ class ManuscriptCalendarView extends ItemView {
         
         // Create legend items using DOM methods instead of innerHTML
         const legendItems = [
-            { cls: 'zero-color', label: 'ZERO', color: 'var(--color-zero)' },
-            { cls: 'author-color', label: 'AUTHOR', color: 'var(--color-first)' },
-            { cls: 'house-color', label: 'HOUSE', color: 'var(--color-editing)' },
-            { cls: 'press-color', label: 'PRESS', color: 'var(--color-press)' }
+            { cls: 'stage-zero', label: 'ZERO', color: 'var(--color-zero)' },
+            { cls: 'stage-author', label: 'AUTHOR', color: 'var(--color-first)' },
+            { cls: 'stage-house', label: 'HOUSE', color: 'var(--color-editing)' },
+            { cls: 'stage-press', label: 'PRESS', color: 'var(--color-press)' }
         ];
         
         legendItems.forEach(item => {
@@ -468,18 +468,13 @@ class ManuscriptCalendarView extends ItemView {
         // Get last day of month
         const lastDay = new Date(currentYear, currentMonth + 1, 0);
         
-        // Calculate the first day to display (Monday before or on the first day of month)
-        const firstMonday = new Date(firstDay);
-        // Adjust day to get the Monday of the week
-        // In JavaScript: 0=Sunday, 1=Monday, ..., 6=Saturday
-        const dayOfWeek = firstDay.getDay(); // 0-6
-        // If it's Sunday (0), go back 6 days to previous Monday
-        // Otherwise, go back (dayOfWeek - 1) days
-        const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-        firstMonday.setDate(firstDay.getDate() - daysToSubtract);
+        // Calculate the first day to display (Sunday before or on the first day of month)
+        const firstDisplayDay = new Date(firstDay);
+        // Adjust to previous Sunday (for calendar display)
+        firstDisplayDay.setDate(firstDay.getDate() - firstDay.getDay());
         
         // Get all notes with Due dates and Revision status
-        let revisionMap = new Map<string, any[]>();
+        const revisionMap = new Map<string, Array<{revision: number, publishStage: string}>>();
         let notesByDate = new Map<string, DataviewPage[]>();
         let todoFutureDates = new Set<string>(); // Track future Todo dates
         let overdueDates = new Set<string>(); // Track overdue dates
@@ -623,8 +618,63 @@ class ManuscriptCalendarView extends ItemView {
                     }
                 });
                 
+                // Find overdue items - not complete but due date is in the past
+                const overduePages = pages.filter(page => {
+                    // Check if Status is NOT Complete
+                    const isNotComplete = page.Status && (
+                        Array.isArray(page.Status) 
+                            ? !page.Status.includes("Complete") 
+                            : page.Status !== "Complete"
+                    );
+                    
+                    // Check if Class property exists and equals "Scene"
+                    const hasSceneClass = page.Class && (
+                        Array.isArray(page.Class) 
+                            ? page.Class.includes("Scene") 
+                            : page.Class === "Scene"
+                    );
+                    
+                    // Has a Due date that's in the past
+                    let isDueDateInPast = false;
+                    if (page.Due) {
+                        try {
+                            // Extract date from link if needed
+                            let rawDueDate: string = typeof page.Due === 'object' && page.Due.path 
+                                ? page.Due.path 
+                                : page.Due as string;
+                            const dueDate = new Date(rawDueDate);
+                            isDueDateInPast = !isNaN(dueDate.getTime()) && dueDate < today;
+                        } catch (error) {
+                            isDueDateInPast = false;
+                        }
+                    }
+                    
+                    return isNotComplete && hasSceneClass && isDueDateInPast;
+                });
+                
+                // Process overdue pages and add to overdueDates set
+                overduePages.forEach(page => {
+                    if (!page.Due) return;
+                    
+                    try {
+                        // Extract date from link if needed
+                        let rawDate: string = typeof page.Due === 'object' && page.Due.path 
+                            ? page.Due.path 
+                            : page.Due as string;
+                        const dueDate = new Date(rawDate);
+                        
+                        if (isNaN(dueDate.getTime())) return;
+                        
+                        // Add to overdueDates set
+                        const dateKey = dueDate.toISOString().split('T')[0];
+                        overdueDates.add(dateKey);
+                    } catch (error) {
+                        return;
+                    }
+                });
+                
                 // Filter for pages where Status = "Complete" AND Class = "Scene"
-                const filteredByMetadata = pages.filter(page => {
+                const completedScenes = pages.filter(page => {
                     // Check if Status property exists and equals "Complete"
                     const hasCompleteStatus = page.Status && (
                         Array.isArray(page.Status) 
@@ -642,16 +692,217 @@ class ManuscriptCalendarView extends ItemView {
                     return hasCompleteStatus && hasSceneClass;
                 });
                 
-                // Process the remaining of the calendar logic...
-                // This would continue with the rest of the function implementation
-                
-                // Note: Continue implementing the rest of the renderCalendarBody method
-                // following the same TypeScript patterns and DOM-safe practices
+                // Process completed scenes and organize by due date
+                completedScenes.forEach(page => {
+                    if (!page.Due) return;
+                    
+                    try {
+                        // Extract date from link if needed
+                        let rawDate: string = typeof page.Due === 'object' && page.Due.path 
+                            ? page.Due.path 
+                            : page.Due as string;
+                        const dueDate = new Date(rawDate);
+                        
+                        if (isNaN(dueDate.getTime())) return;
+                        
+                        // Format date as YYYY-MM-DD
+                        const dateKey = dueDate.toISOString().split('T')[0];
+                        
+                        // Get revision number and publish stage
+                        const revision = typeof page.Revision === 'number' ? page.Revision : 0;
+                        let publishStage = page["Publish Stage"] || "Zero";
+                        
+                        // If it's an array, take the first value
+                        if (Array.isArray(publishStage)) {
+                            publishStage = publishStage[0] || "Zero";
+                        }
+                        
+                        // Add to revisionMap
+                        if (!revisionMap.has(dateKey)) {
+                            revisionMap.set(dateKey, []);
+                        }
+                        
+                        // Add to the array for this date
+                        revisionMap.get(dateKey)?.push({
+                            revision: revision,
+                            publishStage: publishStage
+                        });
+                        
+                        // Also add to notesByDate for potential clicking/opening
+                        if (!notesByDate.has(dateKey)) {
+                            notesByDate.set(dateKey, []);
+                        }
+                        
+                        const notes = notesByDate.get(dateKey);
+                        if (notes) {
+                            notes.push(page);
+                        }
+                    } catch (error) {
+                        console.error("Error processing scene:", error);
+                    }
+                });
             }
         } catch (error) {
             console.error("Error processing calendar data:", error);
         }
         
-        // Continue with creating calendar rows and cells...
+        // Create calendar grid with the collected data
+        let currentDate = new Date(firstDisplayDay);
+        
+        // Create weeks until we've passed the end of the month
+        while (currentDate <= lastDay || currentDate.getDay() !== 0) {
+            // Create week row
+            const weekRow = this.calendarTable.createEl('tr');
+            
+            // Add week number cell
+            const weekNum = this.getWeekNumber(currentDate);
+            const weekCell = weekRow.createEl('td', { 
+                text: weekNum.toString(), 
+                cls: 'week-number' 
+            });
+            
+            // Create day cells for each day of the week
+            for (let i = 0; i < 7; i++) {
+                const dateKey = currentDate.toISOString().split('T')[0];
+                const isCurrentMonth = currentDate.getMonth() === currentMonth;
+                const isToday = currentDate.toDateString() === today.toDateString();
+                
+                // Create day cell with appropriate classes
+                const dayCell = weekRow.createEl('td', {
+                    text: currentDate.getDate().toString()
+                });
+                
+                // Add appropriate classes based on the date
+                if (!isCurrentMonth) {
+                    dayCell.addClass('other-month');
+                }
+                
+                if (isToday) {
+                    dayCell.addClass('today');
+                }
+                
+                // Check if this date has scenes
+                const hasScenes = revisionMap.has(dateKey);
+                const isFutureTask = todoFutureDates.has(dateKey);
+                const isOverdue = overdueDates.has(dateKey);
+                
+                // Make the cell clickable if it has scenes
+                if (hasScenes || isFutureTask || isOverdue) {
+                    dayCell.addClass('clickable-cell');
+                    
+                    // If it's a future task, add future-todo class
+                    if (isFutureTask) {
+                        dayCell.addClass('future-todo');
+                    }
+                    
+                    // If it's an overdue task, add overdue class
+                    if (isOverdue) {
+                        // Create indicator for overdue tasks
+                        const overdueDot = dayCell.createDiv({
+                            cls: 'revision-dot overdue'
+                        });
+                    }
+                    
+                    // Add revision indicators for completed scenes
+                    if (hasScenes) {
+                        const scenesForDate = revisionMap.get(dateKey);
+                        
+                        if (scenesForDate) {
+                            // Track which publish stages we've seen for this date
+                            const stagesForDate = new Set<string>();
+                            let hasZeroRevision = false;
+                            let hasNonZeroRevision = false;
+                            
+                            // Determine which stages are present
+                            scenesForDate.forEach(scene => {
+                                stagesForDate.add(scene.publishStage);
+                                
+                                if (scene.revision === 0) {
+                                    hasZeroRevision = true;
+                                } else {
+                                    hasNonZeroRevision = true;
+                                }
+                            });
+                            
+                            // Check for each stage and create the appropriate dots
+                            const stageChecks = [
+                                { stage: "Zero", cls: "stage-zero" },
+                                { stage: "First", cls: "stage-author" },
+                                { stage: "Editing", cls: "stage-house" },
+                                { stage: "Press", cls: "stage-press" }
+                            ];
+                            
+                            stageChecks.forEach(check => {
+                                if (stagesForDate.has(check.stage)) {
+                                    // Create dot for this stage
+                                    const revisionDot = dayCell.createDiv({
+                                        cls: `revision-dot ${check.cls}`
+                                    });
+                                    
+                                    // For Zero stage, handle special case with revision
+                                    if (check.stage === "Zero" && hasNonZeroRevision) {
+                                        revisionDot.addClass('has-revision');
+                                    }
+                                }
+                            });
+                            
+                            // If we have both zero and non-zero revisions for Zero stage,
+                            // add a special split indicator
+                            if (hasZeroRevision && hasNonZeroRevision && stagesForDate.has("Zero")) {
+                                // Replace individual indicators with a split one
+                                // Find and remove any existing Zero stage indicators
+                                const existingZeroDots = dayCell.querySelectorAll('.revision-dot.stage-zero');
+                                existingZeroDots.forEach(dot => dot.remove());
+                                
+                                // Create a split indicator
+                                const splitDot = dayCell.createDiv({
+                                    cls: 'revision-dot split-revision'
+                                });
+                                
+                                // Create left part (Zero revision)
+                                const zeroPart = splitDot.createDiv({
+                                    cls: 'revision-part stage-zero'
+                                });
+                                
+                                // Create right part (revisions > 0)
+                                const nonZeroPart = splitDot.createDiv({
+                                    cls: 'revision-part has-revision-part'
+                                });
+                            }
+                        }
+                    }
+                    
+                    // If it's a future task and not an overdue or completed scene
+                    if (isFutureTask && !hasScenes && !isOverdue) {
+                        // Create indicator for future todos
+                        const futureTodoDot = dayCell.createDiv({
+                            cls: 'revision-dot future-todo-dot'
+                        });
+                    }
+                    
+                    // Make cell clickable to open the scenes for this date
+                    if (notesByDate.has(dateKey)) {
+                        dayCell.addEventListener('click', () => {
+                            const notes = notesByDate.get(dateKey);
+                            if (notes && notes.length > 0) {
+                                // Try to open the first note
+                                try {
+                                    const firstNote = notes[0];
+                                    const filePath = firstNote.file.path;
+                                    
+                                    // Use Obsidian API to open the file
+                                    this.app.workspace.openLinkText(filePath, '', false);
+                                } catch (error) {
+                                    console.error("Error opening file:", error);
+                                }
+                            }
+                        });
+                    }
+                }
+                
+                // Move to next day
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+        }
     }
 } 
