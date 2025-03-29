@@ -662,9 +662,21 @@ class ManuscriptCalendarView extends ItemView {
                         
                         if (isNaN(dueDate.getTime())) return;
                         
-                        // Add to overdueDates set
+                        // Format date as YYYY-MM-DD
                         const dateKey = dueDate.toISOString().split('T')[0];
+                        
+                        // Add to overdueDates set
                         overdueDates.add(dateKey);
+                        
+                        // Also add to notesByDate for potential clicking/opening
+                        if (!notesByDate.has(dateKey)) {
+                            notesByDate.set(dateKey, []);
+                        }
+                        
+                        const notes = notesByDate.get(dateKey);
+                        if (notes) {
+                            notes.push(page);
+                        }
                     } catch (error) {
                         return;
                     }
@@ -814,6 +826,15 @@ class ManuscriptCalendarView extends ItemView {
                             cls: 'revision-dot overdue'
                         });
                     }
+                    
+                    // If it's a future task and not an overdue or completed scene
+                    else if (isFutureTask && !hasScenes && !isOverdue) {
+                        // Create indicator for future todos
+                        const futureTodoDot = dayCell.createDiv({
+                            cls: 'revision-dot future-todo-dot'
+                        });
+                    }
+                    
                     // Show completed scene indicators
                     else if (hasScenes) {
                         const scenesForDate = revisionMap.get(dateKey);
@@ -895,14 +916,6 @@ class ManuscriptCalendarView extends ItemView {
                                 });
                             }
                         }
-                    }
-                    
-                    // If it's a future task and not an overdue or completed scene
-                    else if (isFutureTask && !hasScenes && !isOverdue) {
-                        // Create indicator for future todos
-                        const futureTodoDot = dayCell.createDiv({
-                            cls: 'revision-dot future-todo-dot'
-                        });
                     }
                     
                     // Make cell clickable to open the scenes for this date
