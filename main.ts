@@ -849,15 +849,18 @@ class ManuscriptCalendarView extends ItemView {
                     
                     // Show overdue indicator only if there are no completed scenes for this date
                     // This ensures completed scenes are shown with their proper color even if there are also overdue tasks
-                    if (isOverdue && !hasScenes) {
-                        // Create indicator for overdue tasks
+                    if (isOverdue) {
+                        // Always prioritize overdue status with a red dot
                         const overdueDot = dayCell.createDiv({
                             cls: 'revision-dot overdue'
                         });
+                        
+                        // If we also have completed scenes, we still want to show them in the tooltip
+                        // but the visual indicator (dot) will be red for overdue priority
                     }
                     
-                    // If it's a future task and not an overdue or completed scene
-                    else if (isFutureTask && !hasScenes && !isOverdue) {
+                    // If it's a future task and not a completed scene
+                    else if (isFutureTask && !hasScenes) {
                         // Create indicator for future todos
                         const futureTodoDot = dayCell.createDiv({
                             cls: 'revision-dot future-todo-dot'
@@ -993,14 +996,26 @@ class ManuscriptCalendarView extends ItemView {
                                 const tooltip = document.createElement('div');
                                 tooltip.classList.add('calendar-tooltip');
                                 
-                                // Show overdue notes first with red color
+                                // Check if current date is in the future
+                                const isFutureDate = currentDate > today;
+                                
+                                // Show overdue/due notes first
                                 if (overdueNotes.length > 0) {
                                     const overdueSection = document.createElement('div');
-                                    overdueSection.classList.add('tooltip-section', 'overdue-section');
+                                    overdueSection.classList.add('tooltip-section');
                                     
-                                    const overdueHeading = document.createElement('h4');
-                                    overdueHeading.textContent = 'Overdue:';
-                                    overdueSection.appendChild(overdueHeading);
+                                    // Use "Due" for future dates and "Overdue" for past dates
+                                    if (isFutureDate) {
+                                        overdueSection.classList.add('due-section');
+                                        const dueHeading = document.createElement('h4');
+                                        dueHeading.textContent = 'Due:';
+                                        overdueSection.appendChild(dueHeading);
+                                    } else {
+                                        overdueSection.classList.add('overdue-section');
+                                        const overdueHeading = document.createElement('h4');
+                                        overdueHeading.textContent = 'Overdue:';
+                                        overdueSection.appendChild(overdueHeading);
+                                    }
                                     
                                     const overdueList = document.createElement('ul');
                                     overdueNotes.forEach(note => {
@@ -1103,7 +1118,21 @@ class ManuscriptCalendarView extends ItemView {
                             // Helper function to update tooltip position via CSS variables
                             function updateTooltipPosition(tooltip: Element, event: MouseEvent) {
                                 const root = document.documentElement;
-                                root.style.setProperty('--tooltip-left', `${event.pageX + 10}px`);
+                                
+                                // Get window width and tooltip width for right edge detection
+                                const windowWidth = window.innerWidth;
+                                const tooltipWidth = (tooltip as HTMLElement).offsetWidth;
+                                const cursorX = event.pageX;
+                                
+                                // Check if tooltip would extend beyond right edge of window
+                                if (cursorX + tooltipWidth + 20 > windowWidth) {
+                                    // Right justify tooltip (position to the left of cursor)
+                                    root.style.setProperty('--tooltip-left', `${cursorX - tooltipWidth - 10}px`);
+                                } else {
+                                    // Normal positioning (to the right of cursor)
+                                    root.style.setProperty('--tooltip-left', `${cursorX + 10}px`);
+                                }
+                                
                                 root.style.setProperty('--tooltip-top', `${event.pageY + 10}px`);
                             }
                         }
@@ -1132,74 +1161,37 @@ class ManuscriptCalendarView extends ItemView {
                                         }
                                     });
                                     
-                                    // Handle notes based on what we have
-                                    if (overdueNotes.length > 0 && completedNotes.length > 0) {
-                                        // We have both overdue and completed notes for this date
+                                    // Choose which notes to open
+                                    const notesToOpen = overdueNotes.length > 0 ? overdueNotes : completedNotes;
+                                    
+                                    // If we have notes to open
+                                    if (notesToOpen.length > 0) {
+                                        // Open all notes
+                                        for (const note of notesToOpen) {
+                                            const filePath = note.file.path;
+                                            // Open each file in a new tab
+                                            await this.app.workspace.openLinkText(filePath, '', true);
+                                        }
                                         
-                                        // Get file paths
-                                        const overduePath = overdueNotes[0].file.path;
-                                        const completedPath = completedNotes[0].file.path;
-                                        
-                                        // Check which files are already open
-                                        let overdueLeaf: WorkspaceLeaf | null = null;
-                                        let completedLeaf: WorkspaceLeaf | null = null;
+                                        // Get the most recently opened leaf to focus on
+                                        let lastOpenedLeaf: WorkspaceLeaf | null = null;
+                                        const lastOpenedPath = notesToOpen[0].file.path; // Default to first note
                                         
                                         this.app.workspace.iterateAllLeaves(leaf => {
                                             const viewState = leaf.getViewState();
-                                            if (viewState.state?.file === overduePath) {
-                                                overdueLeaf = leaf;
-                                            } else if (viewState.state?.file === completedPath) {
-                                                completedLeaf = leaf;
-                                            }
-                                        });
-                                        
-                                        // Open overdue note first if not already open
-                                        if (!overdueLeaf) {
-                                            await this.app.workspace.openLinkText(overduePath, '', true);
-                                            // Get the newly opened leaf
-                                            this.app.workspace.iterateAllLeaves(leaf => {
-                                                const viewState = leaf.getViewState();
-                                                if (viewState.state?.file === overduePath) {
-                                                    overdueLeaf = leaf;
-                                                    return true;
-                                                }
-                                            });
-                                        }
-                                        
-                                        // Open completed note if not already open
-                                        if (!completedLeaf) {
-                                            await this.app.workspace.openLinkText(completedPath, '', true);
-                                        }
-                                        
-                                        // Focus on the overdue note
-                                        if (overdueLeaf) {
-                                            this.app.workspace.setActiveLeaf(overdueLeaf);
-                                        }
-                                    } else {
-                                        // Only have one type of note (either overdue or completed)
-                                        let noteToOpen = overdueNotes.length > 0 ? overdueNotes[0] : completedNotes[0];
-                                        const filePath = noteToOpen.file.path;
-                                        
-                                        // Check if file is already open
-                                        let existingLeaf: WorkspaceLeaf | null = null;
-                                        this.app.workspace.iterateAllLeaves(leaf => {
-                                            const viewState = leaf.getViewState();
-                                            if (viewState.state?.file === filePath) {
-                                                existingLeaf = leaf;
+                                            if (viewState.state?.file === lastOpenedPath) {
+                                                lastOpenedLeaf = leaf;
                                                 return true;
                                             }
                                         });
                                         
-                                        if (existingLeaf) {
-                                            // If file is already open, set it as active
-                                            this.app.workspace.setActiveLeaf(existingLeaf);
-                                        } else {
-                                            // If file is not open, open it in a new tab
-                                            this.app.workspace.openLinkText(filePath, '', true);
+                                        // Focus on the last opened note
+                                        if (lastOpenedLeaf) {
+                                            this.app.workspace.setActiveLeaf(lastOpenedLeaf);
                                         }
                                     }
                                 } catch (error) {
-                                    console.error("Error opening file:", error);
+                                    console.error("Error opening files:", error);
                                 }
                             }
                         });
