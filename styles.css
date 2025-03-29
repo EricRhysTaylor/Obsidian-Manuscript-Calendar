@@ -1,0 +1,539 @@
+/*
+
+This CSS file will be included with your plugin, and
+available in the app when your plugin is enabled.
+
+If your plugin does not need CSS, delete this file.
+
+*/
+
+/* Define color variables for unified color management */
+.manuscript-calendar-view {
+  --color-zero: #9E70CF;    /* Purple for Zero stage */
+  --color-first: #5E85CF;   /* Blue for Author stage */
+  --color-editing: #DA7847; /* Orange for House stage */
+  --color-press: #6FB971;   /* Green for Press stage */
+  --color-overdue: #CC3333; /* Red for overdue items */
+  --color-future: #888888;  /* Medium gray for future Todo */
+  
+  padding: 8px;
+  overflow-y: auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Future Todo styles */
+.manuscript-calendar-view .future-todo {
+  color: var(--text-muted);
+}
+
+.manuscript-calendar-view .future-todo-dot {
+  background-color: var(--color-future);
+}
+
+/* Hide the h3 title */
+.manuscript-calendar-view h3 {
+  display: none;
+}
+
+/* Calendar controls */
+.calendar-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: 8px;
+}
+
+/* Month selector - rearranged layout */
+.month-selector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Month display styling - moved to left */
+.month-selector span {
+  font-size: 22.5px;
+  position: relative;
+  margin-right: auto; /* Push to left */
+}
+
+/* Make the month name bold */
+.month-selector span::before {
+  content: attr(data-month);
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+/* Make the year semi-transparent */
+.month-selector span::after {
+  content: attr(data-year);
+  font-weight: normal;
+  opacity: 1; /* Changed from 0.7 to 1 - full opacity, no transparency */
+  color: var(--alternating-color-1, var(--text-accent)); /* Use theme alternating color with fallback */
+}
+
+/* Navigation buttons - tighter spacing */
+.month-selector .nav-buttons {
+  display: flex;
+  align-items: center;
+  white-space: nowrap; /* Prevent wrapping */
+}
+
+/* Flat buttons without bevels - force zero padding and no background */
+.month-selector button,
+.manuscript-calendar-view button {
+  background: transparent !important; /* Use transparent instead of none */
+  border: none !important;
+  cursor: pointer !important;
+  padding: 0 !important; /* Force zero padding */
+  margin: 0 !important; /* Force zero margin */
+  font-size: 16px !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  min-width: 20px !important;
+  text-align: center !important;
+  line-height: 1 !important;
+  height: auto !important;
+}
+
+/* Today button - flat style with minimal spacing */
+.today-button,
+.manuscript-calendar-view .today-button {
+  text-transform: uppercase !important;
+  background: transparent !important; /* Use transparent instead of none */
+  border: none !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+  letter-spacing: 1px !important;
+  padding: 0 !important; /* Force zero padding */
+  margin: 0 2px !important; /* Only horizontal margin */
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+  height: auto !important;
+  position: relative !important;
+  top: 1px !important;
+}
+
+/* Add spacing between navigation elements with margins instead of padding */
+.month-selector .nav-buttons button:not(.today-button) {
+  margin: 0 4px !important;
+}
+
+/* Calendar table */
+.manuscript-calendar {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* Header row */
+.manuscript-calendar th {
+  text-align: center;
+  padding: 4px;
+  font-size: 9px;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 1; /* Full opacity for all headers */
+}
+
+/* Week number header - match day headers */
+.manuscript-calendar th.week-number {
+  text-align: center;
+  font-size: 9px;
+  font-weight: normal;
+  border-right: 1px solid var(--background-modifier-border-hover);
+  opacity: 1; /* Match other headers */
+}
+
+/* Week number cells - keep darker */
+.manuscript-calendar td.week-number {
+  border-right: 1px solid var(--background-modifier-border-hover);
+  opacity: 0.5; /* Make week numbers darker like off-month days */
+  text-align: center;
+  font-size: 9px;
+}
+
+/* Day cells */
+.manuscript-calendar td {
+  text-align: center;
+  padding: 8px 4px;
+  height: 32px;
+  position: relative;
+  font-size: 12px;
+}
+
+/* Today highlight */
+.manuscript-calendar .today {
+  font-weight: bold;
+  position: relative;
+  opacity: 1 !important; /* Ensure today is always fully visible */
+}
+
+.manuscript-calendar .today::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  z-index: -1;
+}
+
+/* Days from other months - increased transparency to 50% */
+.manuscript-calendar .other-month {
+  opacity: 0.5;
+}
+
+/* Update the revision dot size to 8px wide and 3px tall */
+.revision-dot {
+  width: 8px;
+  height: 3px;
+  border-radius: 0; /* Remove border-radius for rectangular shape */
+  margin: 2px auto 0;
+  display: block;
+  background-color: transparent; /* Default transparent background as placeholder */
+}
+
+/* Stage colors - single source of truth */
+.revision-dot.stage-zero {
+  background-color: var(--color-zero) !important;
+}
+
+.revision-dot.stage-author {
+  background-color: var(--color-first) !important;
+}
+
+.revision-dot.stage-house {
+  background-color: var(--color-editing) !important;
+}
+
+.revision-dot.stage-press {
+  background-color: var(--color-press) !important;
+}
+
+/* Legend swatch styles with matching colors */
+.legend-swatch.stage-zero {
+  background-color: var(--color-zero) !important;
+}
+
+.legend-swatch.stage-author {
+  background-color: var(--color-first) !important;
+}
+
+.legend-swatch.stage-house {
+  background-color: var(--color-editing) !important;
+}
+
+.legend-swatch.stage-press {
+  background-color: var(--color-press) !important;
+}
+
+/* Special handling for Zero stage with revision > 0 */
+.revision-dot.stage-zero.has-revision {
+  background-color: var(--text-muted) !important;
+}
+
+.revision-dot.overdue {
+  background-color: var(--color-overdue) !important;
+}
+
+.revision-dot.future-todo-dot {
+  background-color: var(--color-future) !important;
+}
+
+/* Split revision indicator when both revision 0 and higher revisions exist */
+.revision-dot.split-revision {
+  display: flex;
+  width: 8px;
+  margin: 2px auto 0;
+}
+
+.revision-dot.split-revision .revision-part {
+  height: 3px;
+  width: 4px; /* Half width */
+}
+
+.revision-dot.split-revision .has-revision-part {
+  background-color: var(--text-muted); /* Off-month color for revisions > 0 */
+}
+
+/* Compact legend */
+.calendar-legend {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 5px;
+  width: 100%;
+  justify-content: space-between;
+  padding: 0 15px;
+  margin: 0;
+}
+
+.legend-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 0;
+  margin-top: 5px;
+  margin-bottom: 0;
+}
+
+.legend-container {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+/* More specific selectors for the legend color keys */
+.manuscript-calendar-view .calendar-legend .legend-item .legend-swatch,
+.manuscript-calendar-view .legend-item .legend-swatch,
+.calendar-legend .legend-item .legend-swatch,
+.legend-item .legend-swatch {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 0 !important; /* Remove border-radius for rectangular shape */
+  display: inline-block !important;
+  margin-right: 4px !important;
+  vertical-align: middle !important;
+}
+
+/* Ensure all stage colors in the legend match */
+.legend-swatch.stage-author,
+.legend-swatch.stage-house,
+.legend-swatch.stage-press {
+  width: 6px !important;
+  height: 6px !important;
+}
+
+.stage-selector {
+  margin-bottom: 5px;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.stage-selector label {
+  font-size: 12px;
+  margin-right: 8px;
+  font-weight: normal;
+}
+
+.stage-selector select {
+  background-color: var(--background-primary) !important;
+  border: 1px solid var(--background-modifier-border) !important;
+  color: var(--text-normal) !important;
+  padding: 2px 4px !important;
+  font-size: 12px !important;
+  border-radius: 4px !important;
+  outline: none !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+  text-overflow: ellipsis !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+.theme-dark .stage-selector select {
+  background-color: var(--background-primary-alt) !important;
+}
+
+/* Legend styles */
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0 5px;
+  white-space: nowrap;
+  flex: 1;
+  text-align: center;
+  justify-content: center;
+  min-width: 50px;
+}
+
+.legend-item:last-child {
+  margin-right: 0;
+}
+
+.legend-swatch {
+  width: 6px;
+  height: 6px;
+  border-radius: 0;
+  margin-right: 2px;
+  flex-shrink: 0;
+}
+
+.legend-swatch.revision-placeholder {
+  opacity: 0.3;
+  background-color: var(--background-modifier-border);
+}
+
+/* Legend styles continued */
+.legend-swatch.revision-has-revision {
+  background-color: var(--text-muted);
+}
+
+.legend-swatch.revision-split {
+  display: flex;
+}
+
+.legend-swatch.revision-split .split-part {
+  height: 6px;
+  width: 3px;
+}
+
+.legend-swatch.revision-split .zero-part {
+  background-color: var(--color-zero);
+}
+
+.legend-swatch.revision-split .nonzero-part {
+  background-color: var(--text-muted);
+}
+
+/* Legend swatch colors - nth-child selectors are removed as we now use stage-specific classes */
+/* Legend label styles */
+.legend-label {
+  font-size: 0.7em;
+  text-transform: uppercase;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 600px) {
+  .calendar-legend {
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    flex: 0 0 auto;
+    margin-bottom: 4px;
+  }
+}
+
+td.clickable-cell {
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+td.clickable-cell:hover::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--background-modifier-hover);
+  border-radius: 4px;
+  z-index: -1;
+}
+
+.date-link {
+  text-decoration: none; /* Already none, making sure it stays that way */
+  color: var(--text-normal);
+  cursor: pointer;
+}
+
+.date-link:hover {
+  text-decoration: none; /* Changed from underline to none */
+  color: var(--text-accent);
+}
+
+.nav-buttons button svg,
+.calendar-header button svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  stroke-width: 2px;
+  stroke: var(--text-muted);
+  transition: stroke 0.2s;
+}
+
+.manuscript-calendar-view .calendar-header .nav-button svg,
+.manuscript-calendar-view .month-selector .nav-button svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2px;
+  stroke: var(--text-normal);
+}
+
+.calendar-header .today-button {
+  color: var(--text-muted);
+}
+
+.nav-buttons button svg,
+.calendar-header button svg,
+.manuscript-calendar-view button svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  stroke-width: 2px !important;
+  stroke: var(--text-normal) !important;
+  fill: none !important;
+  transition: stroke 0.2s !important;
+}
+
+.nav-buttons button:hover svg,
+.calendar-header button:hover svg,
+.manuscript-calendar-view button:hover svg {
+  stroke: var(--text-accent) !important;
+}
+
+.stage-selector select:focus,
+.stage-selector select:active,
+.stage-selector select:hover {
+  border-color: var(--background-modifier-border-hover) !important;
+  box-shadow: none !important;
+}
+
+.stage-selector select::-moz-focus-inner {
+  border: 0 !important;
+}
+
+.stage-selector select:-moz-focusring {
+  outline: none !important;
+}
+
+.stage-selector select:focus {
+  outline: none !important;
+}
+
+tr.week-with-scenes {
+  position: relative;
+  z-index: 1;
+}
+
+tr.week-with-scenes td {
+  position: relative;
+  z-index: 1;
+}
+
+.manuscript-calendar {
+  margin-bottom: 0;
+  border-collapse: collapse;
+  border: none;
+  width: 100%;
+}
+
+.manuscript-calendar th.week-number,
+.manuscript-calendar th {
+  font-weight: 400;
+}
+
+.legend-item .legend-swatch.stage-zero {
+  background-color: var(--color-zero) !important;
+}
+
+.manuscript-calendar-view .calendar-legend .legend-item .legend-swatch.stage-zero {
+  background-color: var(--color-zero) !important;
+}

@@ -1,0 +1,25 @@
+{
+	"name": "obsidian-manuscript-calendar",
+	"version": "1.0.0",
+	"description": "A compact calendar for tracking manuscript revision stages in the sidebar",
+	"main": "main.js",
+	"scripts": {
+		"dev": "node build.js watch",
+		"build": "node build.js"
+	},
+	"keywords": [
+		"obsidian",
+		"obsidian-plugin",
+		"calendar",
+		"manuscript"
+	],
+	"author": "Eric Rhys Taylor",
+	"license": "MIT",
+	"devDependencies": {
+		"@types/node": "^16.11.6",
+		"obsidian": "^1.4.0"
+	},
+	"dependencies": {
+		"tslib": "^2.8.1"
+	}
+}
