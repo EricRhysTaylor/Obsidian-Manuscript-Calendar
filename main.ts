@@ -911,9 +911,30 @@ class ManuscriptCalendarView extends ItemView {
                                         noteToOpen = notes[0];
                                     }
                                     
-                                    // Open the selected note
+                                    // Get the file path of the note to open
                                     const filePath = noteToOpen.file.path;
-                                    this.app.workspace.openLinkText(filePath, '', false);
+                                    
+                                    // Check if file is already open in a leaf
+                                    let isFileAlreadyOpen = false;
+                                    let existingLeaf: WorkspaceLeaf | null = null;
+                                    
+                                    // Iterate through all leaves to find if the file is already open
+                                    this.app.workspace.iterateAllLeaves(leaf => {
+                                        const viewState = leaf.getViewState();
+                                        if (viewState.state?.file === filePath) {
+                                            isFileAlreadyOpen = true;
+                                            existingLeaf = leaf;
+                                            return true; // Stop iterating
+                                        }
+                                    });
+                                    
+                                    if (isFileAlreadyOpen && existingLeaf) {
+                                        // If file is already open, simply set it as active
+                                        this.app.workspace.setActiveLeaf(existingLeaf);
+                                    } else {
+                                        // If file is not open, open it in a new tab
+                                        this.app.workspace.openLinkText(filePath, '', true); // true to open in new tab
+                                    }
                                 } catch (error) {
                                     console.error("Error opening file:", error);
                                 }
