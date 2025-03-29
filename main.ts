@@ -424,8 +424,6 @@ class ManuscriptCalendarView extends ItemView {
         
         // Add horizontal rule to separate calendar from legend
         const separator = container.createEl('hr', { cls: 'calendar-legend-separator' });
-        separator.style.margin = '0.5rem 0';
-        separator.style.padding = '0';
         
         // Create legend container
         const legendContainer = container.createDiv({ cls: 'legend-container' });

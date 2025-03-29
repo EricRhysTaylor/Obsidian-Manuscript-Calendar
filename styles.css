@@ -43,7 +43,7 @@ If your plugin does not need CSS, delete this file.
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
-  border-bottom: 1px solid var(--background-modifier-border);
+  border-bottom: none; /* Remove bottom border */
   padding-bottom: 8px;
 }
 
@@ -143,8 +143,8 @@ If your plugin does not need CSS, delete this file.
   letter-spacing: 0.5px;
   opacity: 1; /* Full opacity for all headers */
   color: var(--text-normal); /* Ensure headers use normal text color */
-  background-color: var(--background-secondary); /* Add background color for better visibility */
-  border-bottom: 1px solid var(--background-modifier-border); /* Add border for definition */
+  background-color: transparent; /* Remove background color */
+  border-bottom: none; /* Remove bottom border */
 }
 
 /* Week number header - match day headers */
@@ -543,4 +543,9 @@ tr.week-with-scenes td {
 
 .manuscript-calendar-view .calendar-legend .legend-item .legend-swatch.stage-zero {
   background-color: var(--color-zero) !important;
+}
+
+/* Remove horizontal rule between calendar and legend */
+.calendar-legend-separator {
+  display: none; /* Hide the separator completely */
 }
