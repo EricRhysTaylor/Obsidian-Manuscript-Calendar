@@ -806,15 +806,15 @@ class ManuscriptCalendarView extends ItemView {
                         dayCell.addClass('future-todo');
                     }
                     
-                    // If it's an overdue task (past date, not complete), add overdue class and red indicator
-                    if (isOverdue) {
+                    // Show overdue indicator only if there are no completed scenes for this date
+                    // This ensures completed scenes are shown with their proper color even if there are also overdue tasks
+                    if (isOverdue && !hasScenes) {
                         // Create indicator for overdue tasks
                         const overdueDot = dayCell.createDiv({
                             cls: 'revision-dot overdue'
                         });
                     }
-                    // Only add revision indicators for completed scenes if not overdue
-                    // This ensures overdue indicators take precedence
+                    // Show completed scene indicators
                     else if (hasScenes) {
                         const scenesForDate = revisionMap.get(dateKey);
                         
@@ -907,59 +907,95 @@ class ManuscriptCalendarView extends ItemView {
                     
                     // Make cell clickable to open the scenes for this date
                     if (notesByDate.has(dateKey)) {
-                        dayCell.addEventListener('click', () => {
+                        dayCell.addEventListener('click', async () => {
                             const notes = notesByDate.get(dateKey);
                             if (notes && notes.length > 0) {
                                 try {
-                                    // Find the first overdue note for this date if there is one
-                                    let noteToOpen = null;
+                                    // Find overdue notes and completed notes
+                                    let overdueNotes: DataviewPage[] = [];
+                                    let completedNotes: DataviewPage[] = [];
                                     
-                                    // Prioritize overdue notes
-                                    if (isOverdue) {
-                                        // Find the first overdue note
-                                        const overdueNote = notes.find(note => {
-                                            const status = note.Status;
-                                            const isNotComplete = status && (
-                                                Array.isArray(status) 
-                                                    ? !status.includes("Complete") 
-                                                    : status !== "Complete"
-                                            );
-                                            return isNotComplete;
-                                        });
+                                    // Categorize notes
+                                    notes.forEach(note => {
+                                        const status = note.Status;
+                                        const isComplete = status && (
+                                            Array.isArray(status) 
+                                                ? status.includes("Complete") 
+                                                : status === "Complete"
+                                        );
                                         
-                                        if (overdueNote) {
-                                            noteToOpen = overdueNote;
-                                        }
-                                    }
-                                    
-                                    // If no overdue note was found, use the first available note
-                                    if (!noteToOpen) {
-                                        noteToOpen = notes[0];
-                                    }
-                                    
-                                    // Get the file path of the note to open
-                                    const filePath = noteToOpen.file.path;
-                                    
-                                    // Check if file is already open in a leaf
-                                    let isFileAlreadyOpen = false;
-                                    let existingLeaf: WorkspaceLeaf | null = null;
-                                    
-                                    // Iterate through all leaves to find if the file is already open
-                                    this.app.workspace.iterateAllLeaves(leaf => {
-                                        const viewState = leaf.getViewState();
-                                        if (viewState.state?.file === filePath) {
-                                            isFileAlreadyOpen = true;
-                                            existingLeaf = leaf;
-                                            return true; // Stop iterating
+                                        if (isComplete) {
+                                            completedNotes.push(note);
+                                        } else {
+                                            overdueNotes.push(note);
                                         }
                                     });
                                     
-                                    if (isFileAlreadyOpen && existingLeaf) {
-                                        // If file is already open, simply set it as active
-                                        this.app.workspace.setActiveLeaf(existingLeaf);
+                                    // Handle notes based on what we have
+                                    if (overdueNotes.length > 0 && completedNotes.length > 0) {
+                                        // We have both overdue and completed notes for this date
+                                        
+                                        // Get file paths
+                                        const overduePath = overdueNotes[0].file.path;
+                                        const completedPath = completedNotes[0].file.path;
+                                        
+                                        // Check which files are already open
+                                        let overdueLeaf: WorkspaceLeaf | null = null;
+                                        let completedLeaf: WorkspaceLeaf | null = null;
+                                        
+                                        this.app.workspace.iterateAllLeaves(leaf => {
+                                            const viewState = leaf.getViewState();
+                                            if (viewState.state?.file === overduePath) {
+                                                overdueLeaf = leaf;
+                                            } else if (viewState.state?.file === completedPath) {
+                                                completedLeaf = leaf;
+                                            }
+                                        });
+                                        
+                                        // Open overdue note first if not already open
+                                        if (!overdueLeaf) {
+                                            await this.app.workspace.openLinkText(overduePath, '', true);
+                                            // Get the newly opened leaf
+                                            this.app.workspace.iterateAllLeaves(leaf => {
+                                                const viewState = leaf.getViewState();
+                                                if (viewState.state?.file === overduePath) {
+                                                    overdueLeaf = leaf;
+                                                    return true;
+                                                }
+                                            });
+                                        }
+                                        
+                                        // Open completed note if not already open
+                                        if (!completedLeaf) {
+                                            await this.app.workspace.openLinkText(completedPath, '', true);
+                                        }
+                                        
+                                        // Focus on the overdue note
+                                        if (overdueLeaf) {
+                                            this.app.workspace.setActiveLeaf(overdueLeaf);
+                                        }
                                     } else {
-                                        // If file is not open, open it in a new tab
-                                        this.app.workspace.openLinkText(filePath, '', true); // true to open in new tab
+                                        // Only have one type of note (either overdue or completed)
+                                        let noteToOpen = overdueNotes.length > 0 ? overdueNotes[0] : completedNotes[0];
+                                        const filePath = noteToOpen.file.path;
+                                        
+                                        // Check if file is already open
+                                        let existingLeaf: WorkspaceLeaf | null = null;
+                                        this.app.workspace.iterateAllLeaves(leaf => {
+                                            const viewState = leaf.getViewState();
+                                            if (viewState.state?.file === filePath) {
+                                                existingLeaf = leaf;
+                                                return true;
+                                            }
+                                        });
+                                        
+                                        if (existingLeaf) {
+                                            // If file is already open, set it as active
+                                            this.app.workspace.setActiveLeaf(existingLeaf);
+                                        } else {
+                                            // If file is not open, open it in a new tab
+                                            this.app.workspace.openLinkText(filePath, '', true);
+                                        }
                                     }
                                 } catch (error) {
                                     console.error("Error opening file:", error);
