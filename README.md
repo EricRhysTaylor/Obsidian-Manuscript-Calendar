@@ -65,10 +65,35 @@ The calendar filters scenes based on the selected Publish Stage:
 - **Open Manuscript Calendar**: Opens the calendar view in the right sidebar
 - You can also click the calendar icon in the ribbon
 
+## Development Guidelines
+
+This plugin adheres to Obsidian.md development best practices:
+
+1. **DOM-Based UI Creation**: All UI elements are created using proper DOM methods instead of HTML strings.
+   - Uses `document.createElement()`, `element.appendChild()`, etc.
+   - Avoids `innerHTML` and `outerHTML` for security and stability reasons
+
+2. **Obsidian API Compliance**: Utilizes Obsidian's API for all plugin interactions.
+
+3. **Type Safety**: Built with TypeScript for improved code reliability.
+
+For detailed development instructions, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Building From Source
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Development build with hot reload: `npm run dev`
+4. Production build: `npm run build`
+
 ## Author
 
 Created by Eric Rhys Taylor
 
 ## Support
 
-If you encounter any issues or have feature requests, please file an issue on the [GitHub repository](https://github.com/yourusername/obsidian-manuscript-calendar).
+If you encounter any issues or have feature requests, please file an issue on the [GitHub repository](https://github.com/EricRhysTaylor/obsidian-manuscript-calendar).
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
