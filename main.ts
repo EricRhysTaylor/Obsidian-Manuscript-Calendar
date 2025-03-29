@@ -102,23 +102,46 @@ export default class ManuscriptCalendarPlugin extends Plugin {
                             : file.path.includes(manuscriptFolderPath.replace(/^\/+|\/+$/g, ''));
                     
                     if (isInManuscriptFolder) {
-                        // console.log(`File in manuscript folder changed: ${file.path}`);
+                        console.log(`File in manuscript folder changed: ${file.path}`);
                         
-                        // Force Dataview to update its cache for this file
-                        if (this.app.plugins.plugins.dataview && 
-                            this.app.plugins.plugins.dataview.api &&
-                            this.app.plugins.plugins.dataview.api.index) {
-                            this.app.plugins.plugins.dataview.api.index.touch();
+                        // Get metadata for debugging
+                        const metadata = this.app.metadataCache.getFileCache(file);
+                        if (metadata && metadata.frontmatter) {
+                            console.log(`Frontmatter detected:`, metadata.frontmatter);
+                            
+                            // Special handling for Publish Stage changes
+                            if (metadata.frontmatter["Publish Stage"]) {
+                                console.log(`Publish Stage changed to: ${metadata.frontmatter["Publish Stage"]}`);
+                            }
                         }
                         
-                        // Update all instances of the calendar view
-                        this.app.workspace.getLeavesOfType(VIEW_TYPE_MANUSCRIPT_CALENDAR).forEach(leaf => {
-                            if (leaf.view instanceof ManuscriptCalendarView) {
-                                // Use the dedicated refresh method that only updates what's necessary
-                                (leaf.view as ManuscriptCalendarView).refreshCalendar();
-                                // console.log("Calendar refreshed due to file change");
+                        // Force Dataview to update its cache for this file with a slight delay to ensure 
+                        // metadata changes are processed completely
+                        setTimeout(() => {
+                            if (this.app.plugins.plugins.dataview && 
+                                this.app.plugins.plugins.dataview.api &&
+                                this.app.plugins.plugins.dataview.api.index) {
+                                this.app.plugins.plugins.dataview.api.index.touch();
+                                
+                                // Update all instances of the calendar view after dataview cache update
+                                setTimeout(() => {
+                                    this.app.workspace.getLeavesOfType(VIEW_TYPE_MANUSCRIPT_CALENDAR).forEach(leaf => {
+                                        if (leaf.view instanceof ManuscriptCalendarView) {
+                                            // Use the dedicated refresh method that only updates what's necessary
+                                            (leaf.view as ManuscriptCalendarView).refreshCalendar();
+                                            console.log("Calendar refreshed due to file change");
+                                        }
+                                    });
+                                }, 300); // Short delay to ensure dataview has completed its update
+                            } else {
+                                // If dataview isn't available, still update the calendar
+                                this.app.workspace.getLeavesOfType(VIEW_TYPE_MANUSCRIPT_CALENDAR).forEach(leaf => {
+                                    if (leaf.view instanceof ManuscriptCalendarView) {
+                                        (leaf.view as ManuscriptCalendarView).refreshCalendar();
+                                    }
+                                });
                             }
-                        });
+                        }, 100); // Short delay to ensure metadata is fully processed
                     }
                 }
             };
@@ -275,10 +298,13 @@ class ManuscriptCalendarView extends ItemView {
 
     // Method to refresh the calendar data and display
     refreshCalendar(): void {
-        // Only re-render the calendar body portion to avoid flickering
-        if (this.calendarTable) {
-            this.renderCalendarBody();
-        }
+        console.log('Refreshing calendar view');
+        // Force a complete redraw of the calendar to ensure all data is updated
+        this.renderCalendarBody().then(() => {
+            console.log('Calendar body refreshed successfully');
+        }).catch(error => {
+            console.error('Error refreshing calendar:', error);
+        });
     }
 
     async onOpen(): Promise<void> {
