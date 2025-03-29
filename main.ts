@@ -707,11 +707,24 @@ class ManuscriptCalendarView extends ItemView {
                         
                         // Get revision number and publish stage
                         const revision = typeof page.Revision === 'number' ? page.Revision : 0;
-                        let publishStage = page["Publish Stage"] || "Zero";
+                        let publishStage = page["Publish Stage"] || "ZERO";
                         
                         // If it's an array, take the first value
                         if (Array.isArray(publishStage)) {
-                            publishStage = publishStage[0] || "Zero";
+                            publishStage = publishStage[0] || "ZERO";
+                        }
+                        
+                        // Convert legacy publish stage values to new format
+                        const stageMap = {
+                            "Zero": "ZERO",
+                            "First": "AUTHOR",
+                            "Editing": "HOUSE",
+                            "Press": "PRESS"
+                        };
+                        
+                        // If the publishStage is one of the legacy values, convert it
+                        if (publishStage in stageMap) {
+                            publishStage = stageMap[publishStage as keyof typeof stageMap];
                         }
                         
                         // Add to revisionMap
@@ -825,21 +838,33 @@ class ManuscriptCalendarView extends ItemView {
                             // Only show publish stage colors for today or future dates
                             // For past dates, they're either overdue (red) or complete (stage colors)
                             const stageChecks = [
-                                { stage: "Zero", cls: "stage-zero" },
-                                { stage: "First", cls: "stage-author" },
-                                { stage: "Editing", cls: "stage-house" },
-                                { stage: "Press", cls: "stage-press" }
+                                { stage: "ZERO", cls: "stage-zero" },
+                                { stage: "AUTHOR", cls: "stage-author" },
+                                { stage: "HOUSE", cls: "stage-house" },
+                                { stage: "PRESS", cls: "stage-press" }
                             ];
                             
+                            // Also add support for legacy values for backward compatibility
+                            const stageCheckMap = {
+                                "Zero": "ZERO",
+                                "First": "AUTHOR",
+                                "Editing": "HOUSE",
+                                "Press": "PRESS"
+                            };
+                            
                             stageChecks.forEach(check => {
-                                if (stagesForDate.has(check.stage)) {
+                                // Check for both the new exact match and possible legacy values
+                                if (stagesForDate.has(check.stage) || 
+                                    stagesForDate.has(Object.keys(stageCheckMap).find(
+                                        key => stageCheckMap[key as keyof typeof stageCheckMap] === check.stage
+                                    ) || "")) {
                                     // Create dot for this stage
                                     const revisionDot = dayCell.createDiv({
                                         cls: `revision-dot ${check.cls}`
                                     });
                                     
                                     // For Zero stage, handle special case with revision
-                                    if (check.stage === "Zero" && hasNonZeroRevision) {
+                                    if (check.stage === "ZERO" && hasNonZeroRevision) {
                                         revisionDot.addClass('has-revision');
                                     }
                                 }
@@ -847,7 +872,8 @@ class ManuscriptCalendarView extends ItemView {
                             
                             // If we have both zero and non-zero revisions for Zero stage,
                             // add a special split indicator
-                            if (hasZeroRevision && hasNonZeroRevision && stagesForDate.has("Zero")) {
+                            if (hasZeroRevision && hasNonZeroRevision && 
+                                (stagesForDate.has("ZERO") || stagesForDate.has("Zero"))) {
                                 // Replace individual indicators with a split one
                                 // Find and remove any existing Zero stage indicators
                                 const existingZeroDots = dayCell.querySelectorAll('.revision-dot.stage-zero');
