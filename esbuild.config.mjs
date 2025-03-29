@@ -2,6 +2,7 @@ import esbuild from "esbuild";
 import process from "process";
 import builtins from "builtin-modules";
 import { copyBuildFiles } from "./copy-build.mjs";
+import { checkCodeQuality } from "./code-quality-check.mjs";
 
 const banner =
 `/*
@@ -12,6 +13,15 @@ Author: Eric Rhys Taylor
 `;
 
 const prod = (process.argv[2] === "production");
+
+// Run the code quality check before building
+console.log("Running Obsidian.md guideline compliance check...");
+const qualityCheckPassed = checkCodeQuality();
+
+if (!qualityCheckPassed) {
+	console.error("Build failed: Code quality check detected violations of Obsidian.md guidelines.");
+	process.exit(1);
+}
 
 const context = await esbuild.context({
 	banner: {

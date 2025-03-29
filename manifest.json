@@ -3,7 +3,7 @@
 	"name": "Manuscript Calendar",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "A compact calendar for tracking manuscript revision stages in the sidebar",
+	"description": "A compact calendar for tracking manuscript revision stages in the sidebar - with TypeScript support",
 	"author": "Eric Rhys Taylor",
 	"authorUrl": "https://github.com/EricRhysTaylor",
 	"fundingUrl": "https://obsidian.md/none",
