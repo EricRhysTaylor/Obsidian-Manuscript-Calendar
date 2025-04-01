@@ -27,7 +27,7 @@ You can find it on GitHub or by searching for "Manuscript Timeline" in the Obsid
 
 <div style="text-align: center;">
 <a href="https://raw.githubusercontent.com/EricRhysTaylor/Obsidian-Manuscript-Calendar/master/screenshot.png" target="_blank">
-  <img src="https://raw.githubusercontent.com/EricRhysTaylor/Obsidian-Manuscript-Calendar/master/screenshot.png" alt="Manuscript Calendar Screenshot" style="max-width: 100%; border-radius: 8px; border: 1px solid #444;">
+  <img src="https://raw.githubusercontent.com/EricRhysTaylor/Obsidian-Manuscript-Calendar/master/screenshot.png" alt="Manuscript Calendar Screenshot" style="max-width: 50%; border-radius: 8px; border: 1px solid #444;">
 </a>
 <div style="font-size: 0.8em; margin-top: 5px; color: #888;">
   Click image to view full size
