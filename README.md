@@ -25,8 +25,8 @@ You can find it on GitHub or by searching for "Manuscript Timeline" in the Obsid
 *   Clickable dates to open associated scene files
 *   Tooltips on hover showing scene details including in [3] the revision number
 
-<a href="https://github.com/EricRhysTaylor/Obsidian-Manuscript-Calendar/blob/ade1ed7f72bad0a01cdacb2ba034e2d3924d8141/screenshot.png" target="_blank">
-  <img src="https://github.com/EricRhysTaylor/Obsidian-Manuscript-Calendar/blob/ade1ed7f72bad0a01cdacb2ba034e2d3924d8141/screenshot.png" alt="Manuscript Calendar Screenshot" style="max-width: 100%; border-radius: 8px; border: 1px solid #444;">
+<a href="https://raw.githubusercontent.com/EricRhysTaylor/Obsidian-Manuscript-Calendar/master/screenshot.png" target="_blank">
+  <img src="https://raw.githubusercontent.com/EricRhysTaylor/Obsidian-Manuscript-Calendar/master/screenshot.png" alt="Manuscript Calendar Screenshot" style="max-width: 100%; border-radius: 8px; border: 1px solid #444;">
 </a>
 <div style="text-align: center; font-size: 0.8em; margin-top: 5px; color: #888;">
   Click image to view full size
