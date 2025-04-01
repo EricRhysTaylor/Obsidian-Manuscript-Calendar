@@ -15,17 +15,28 @@ If your plugin does not need CSS, delete this file.
     --color-press: #57c176;    /* Green for press stage */
     --color-overdue: #d95353;  /* Red for overdue items */
     --color-future: #8e8e8e;   /* Grey for future todos */
-    --tooltip-left: 0px;       /* For tooltip positioning */
-    --tooltip-top: 0px;        /* For tooltip positioning */
+    --color-text-today: #ff9100; /* Orange for today's date */
+    --ratio-svg-size: 28px; /* Single control point for SVG size */
+    
+    /* SVG ratio stage colors */
+    --stage-zero-color: var(--color-zero);
+    --stage-author-color: var(--color-author);
+    --stage-house-color: var(--color-house);
+    --stage-press-color: var(--color-press);
 }
 
 /* CALENDAR CONTAINER AND LAYOUT */
 .manuscript-calendar-view {
-    padding: 0 1rem 2rem 1rem;
+    padding: 0 1rem 0.5rem 1rem;
     overflow-x: auto;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.5rem;
+}
+
+/* Hide the header text */
+.manuscript-calendar-view h3 {
+    display: none;
 }
 
 /* CALENDAR CONTROLS */
@@ -33,23 +44,27 @@ If your plugin does not need CSS, delete this file.
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--background-modifier-border);
+    margin-bottom: 0;
+    padding-bottom: 0;
 }
 
 .month-selector {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     gap: 8px;
     flex: 1;
     position: relative;
+    margin-right: 0; /* Remove extra space */
 }
 
 .month-selector span {
+    position: relative;
     font-weight: 500;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
+    margin-right: auto;
+    display: flex;
+    align-items: baseline;
 }
 
 .month-selector span::before {
@@ -57,14 +72,64 @@ If your plugin does not need CSS, delete this file.
     margin-right: 5px;
 }
 
+/* Replace the after pseudo-element with a different approach */
 .month-selector span::after {
     content: attr(data-year);
+    color: var(--alternating-color-1);
+    font-weight: 600;
+}
+
+/* Remove the old stage indicator styles */
+.month-selector span[data-stage]:not([data-stage=""]):not([data-stage="undefined"]) {
+    position: relative;
+    padding-right: 0; /* Remove extra padding */
+}
+
+/* Month/Year elements */
+.month-text {
+    font-weight: 500;
+}
+
+.year-text {
+    color: var(--alternating-color-1);
+    font-weight: 600;
+}
+
+/* Create the stage badge as a proper exponent */
+.month-selector span .stage-indicator {
+    font-size: 0.5rem;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    position: relative;
+    top: -1.0em;
+    margin-left: -0.2em; /* Negative margin to reduce space */
+    display: inline-block;
+    line-height: 1;
+}
+
+/* Stage colors using classes */
+.stage-indicator.stage-zero {
+    color: var(--color-zero);
+}
+
+.stage-indicator.stage-author {
+    color: var(--color-author);
+}
+
+.stage-indicator.stage-house {
+    color: var(--color-house);
+}
+
+.stage-indicator.stage-press {
+    color: var(--color-press);
 }
 
 .nav-buttons {
     display: flex;
-    gap: 4px;
+    gap: 1px; /* Reduced gap for closer buttons */
     align-items: center;
+    margin-left: auto;
 }
 
 .nav-buttons button,
@@ -76,78 +141,130 @@ If your plugin does not need CSS, delete this file.
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+    transition: color 0.2s;
+    box-shadow: none;
 }
 
 .nav-buttons button:hover,
 .calendar-header button:hover {
-    background-color: var(--background-modifier-hover);
-    color: var(--text-normal);
+    background: none;
+    color: var(--text-accent);
 }
 
 .today-button {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 500;
+    position: relative;
+    top: -2px;
     padding: 4px 8px !important;
-    border-radius: 4px;
-    background-color: var(--background-secondary) !important;
+    background: none !important;
+    border: none !important;
     color: var(--text-normal);
-    transition: background-color 0.2s, color 0.2s;
+    transition: color 0.2s;
+    box-shadow: none !important;
 }
 
 .today-button:hover {
-    background-color: var(--background-modifier-hover) !important;
+    background: none !important;
     color: var(--text-accent) !important;
 }
 
 /* CALENDAR TABLE STYLING */
 .manuscript-calendar {
+    margin-top: 0;
     margin-bottom: 0;
     border-collapse: collapse;
     border: none;
     width: 100%;
     table-layout: fixed; /* Ensure equal cell widths */
+    border-spacing: 0; /* Eliminate gaps between cells */
+}
+
+/* Week column separator */
+.week-separator {
+    border-right: 1px solid var(--background-modifier-border);
+    position: relative;
+    z-index: 1;
+    background-color: var(--background-secondary);
+}
+
+.manuscript-calendar th.week-separator,
+.manuscript-calendar td.week-separator {
+    border-right: 1px solid var(--background-modifier-border);
+    width: 40px; /* Fixed width for week number column */
+    height: 100%; /* Ensure full height coverage */
 }
 
 .manuscript-calendar th,
 .manuscript-calendar td {
     text-align: center;
-    padding: 4px 2px;
-    font-size: 0.85rem;
+    padding: 1px 2px;
+    font-size: 0.75rem;
     border: none;
-    height: 30px; /* Standardized cell height */
+    height: auto; /* Let content determine height */
     position: relative;
-    vertical-align: top; /* Align text to top */
+    vertical-align: middle;
+    line-height: 1.1; /* Slightly smaller line height */
 }
 
 .manuscript-calendar th {
-    padding-bottom: 8px;
-    font-size: 0.65rem;
+    padding-bottom: 4px;
+    font-size: 0.6rem;
     font-weight: 400;
     color: var(--text-muted);
-    height: auto; /* Override height for header cells */
+}
+
+.manuscript-calendar th.week-number {
+    font-size: 8px; /* Smaller header font */
 }
 
 .week-number {
-    color: var(--text-faint);
-    font-size: 0.65rem !important;
+    position: relative;
+    padding: 1px 0.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    background-color: var(--background-secondary);
+    text-align: initial;
 }
 
 .manuscript-calendar td {
     width: calc(100% / 7);
     border-radius: 4px;
-    padding-top: 6px; /* Consistent top padding */
-    line-height: 1;
+    padding-top: 4px;
+    padding-bottom: 8px; /* Reduced from 12px to 8px */
 }
 
 .manuscript-calendar td.other-month {
     color: var(--text-faint);
+    font-size: 0.65rem;
+    opacity: 0.7;
 }
 
-.manuscript-calendar td.today {
+/* Direct accent color for today with fallback */
+.manuscript-calendar-view table.manuscript-calendar td.today {
     background-color: var(--background-secondary);
-    font-weight: 600;
+    color: var(--color-text-today);
+    font-weight: 700;
+    position: relative;
+}
+
+/* Remove theme-specific colors */
+.theme-light .manuscript-calendar td.today,
+.theme-dark .manuscript-calendar td.today {
+    color: var(--color-text-today);
+}
+
+.manuscript-calendar td.today::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 4px;
+    z-index: -1;
 }
 
 /* CLICKABLE CELLS */
@@ -176,7 +293,7 @@ td.clickable-cell:hover::before {
     border-radius: 0;
     display: block;
     position: absolute;
-    bottom: 4px;
+    bottom: 4px; /* Reduced from 6px to 4px */
     left: 50%;
     transform: translateX(-50%);
 }
@@ -189,7 +306,7 @@ td.clickable-cell:hover::before {
     background-color: var(--text-normal);
     opacity: 0.15;
     position: absolute;
-    bottom: 4px;
+    bottom: 4px; /* Reduced from 6px to 4px */
     left: 50%;
     transform: translateX(-50%);
 }
@@ -231,7 +348,7 @@ td.clickable-cell:hover::before {
     border-radius: 0;
     overflow: hidden;
     position: absolute;
-    bottom: 4px;
+    bottom: 4px; /* Reduced from 6px to 4px */
     left: 50%;
     transform: translateX(-50%);
 }
@@ -255,7 +372,7 @@ td.clickable-cell:hover::before {
 }
 
 .legend-container {
-    margin-top: 0.5rem;
+    margin-top: 0;
 }
 
 .legend-wrapper {
@@ -266,9 +383,9 @@ td.clickable-cell:hover::before {
 .calendar-legend {
     display: flex;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
-    padding: 6px 10px;
+    padding: 4px 10px;
     border-radius: 6px;
     background-color: var(--background-secondary);
 }
@@ -281,8 +398,8 @@ td.clickable-cell:hover::before {
 
 /* SVG ICONS IN LEGEND */
 .legend-swatch {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     margin-right: 6px;
     display: flex;
     justify-content: center;
@@ -292,90 +409,57 @@ td.clickable-cell:hover::before {
 }
 
 .legend-swatch svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     stroke-width: 2px;
     opacity: 1 !important;
 }
 
 /* STAGE ZERO - CIRCLE SLASH */
 .legend-swatch.stage-zero::after {
-    content: '';
-    position: absolute;
-    width: 14px;
-    height: 3px;
-    background-color: var(--color-zero);
-    border-radius: 0;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    display: none;
 }
 
-.legend-swatch.stage-zero svg,
-.legend-swatch.stage-zero::before {
-    display: none !important;
+.legend-swatch.stage-zero svg {
+    color: var(--color-zero) !important;
 }
 
 /* AUTHOR STAGE */
 .legend-swatch.stage-author::after {
-    content: '';
-    position: absolute;
-    width: 14px;
-    height: 3px;
-    background-color: var(--color-author);
-    border-radius: 0;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    display: none;
 }
 
 .legend-swatch.stage-author svg {
-    display: none !important;
+    color: var(--color-author) !important;
 }
 
 /* HOUSE STAGE */
 .legend-swatch.stage-house::after {
-    content: '';
-    position: absolute;
-    width: 14px;
-    height: 3px;
-    background-color: var(--color-house);
-    border-radius: 0;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    display: none;
 }
 
 .legend-swatch.stage-house svg {
-    display: none !important;
+    color: var(--color-house) !important;
 }
 
 /* PRESS STAGE */
 .legend-swatch.stage-press::after {
-    content: '';
-    position: absolute;
-    width: 14px;
-    height: 3px;
-    background-color: var(--color-press);
-    border-radius: 0;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    display: none;
 }
 
 .legend-swatch.stage-press svg {
-    display: none !important;
+    color: var(--color-press) !important;
 }
 
 /* LEGEND LABELS */
 .legend-label {
-    font-size: 0.75em;
+    font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0px;
     white-space: nowrap;
     margin: 0;
     padding: 0;
-    font-weight: 600;
+    font-weight: 200;
     color: var(--text-normal);
 }
 
@@ -397,16 +481,14 @@ td.clickable-cell:hover::before {
     width: 16px;
     height: 16px;
     display: block;
-    stroke-width: 2px !important;
-    stroke: var(--text-normal) !important;
-    fill: none !important;
-    transition: stroke 0.2s !important;
+    color: var(--text-normal) !important;
+    transition: color 0.2s !important;
 }
 
 .nav-buttons button:hover svg,
 .calendar-header button:hover svg,
 .manuscript-calendar-view button:hover svg {
-    stroke: var(--text-accent) !important;
+    color: var(--text-accent) !important;
 }
 
 /* STAGE SELECTOR STYLING */
@@ -422,29 +504,76 @@ td.clickable-cell:hover::before {
 }
 
 /* TOOLTIP STYLING */
+/* Simplified tooltip positioning system */
+.tooltip-container {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+}
+
 .calendar-tooltip {
-    position: absolute;
-    z-index: 1000;
+    position: relative;
     background: var(--background-primary);
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
     padding: 8px 12px;
-    font-size: 12px;
+    font-size: 11px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     min-width: 180px;
     max-width: 280px;
-    left: var(--tooltip-left, 0);
-    top: var(--tooltip-top, 0);
+    pointer-events: auto;
+    transform: translate(-50%, 0); /* Center horizontally by default */
 }
 
-.tooltip-positioning {
-    position: absolute;
-    z-index: 1000;
+/* Right-aligned tooltip (when near the right edge) */
+.tooltip-container.right-aligned .calendar-tooltip {
+    transform: translate(-100%, 0); /* Right-align horizontally */
+}
+
+/* Left-aligned tooltip (when near the left edge) */
+.tooltip-container.left-aligned .calendar-tooltip {
+    transform: translate(0%, 0); /* Left-align horizontally - no transform on X axis */
+    margin-left: 5px; /* Small offset to prevent touching the edge */
+}
+
+/* Position above */
+.tooltip-container.v-pos-above .calendar-tooltip {
+    transform: translate(-50%, -100%);
+    margin-top: -10px; /* Gap between cell and tooltip */
+}
+
+/* Position below */
+.tooltip-container.v-pos-below .calendar-tooltip {
+    margin-top: 10px; /* Gap between cell and tooltip */
+    transform: translate(-50%, 0);
+}
+
+/* Combined position classes - above and alignment variations */
+.tooltip-container.v-pos-above.right-aligned .calendar-tooltip {
+    transform: translate(-100%, -100%);
+    margin-top: -10px;
+}
+
+.tooltip-container.v-pos-above.left-aligned .calendar-tooltip {
+    transform: translate(0%, -100%); /* Maintain left alignment when above */
+    margin-top: -10px;
+    margin-left: 5px;
+}
+
+/* Combined position classes - below and alignment variations */
+.tooltip-container.v-pos-below.right-aligned .calendar-tooltip {
+    margin-top: 10px;
+    transform: translate(-100%, 0);
+}
+
+.tooltip-container.v-pos-below.left-aligned .calendar-tooltip {
+    margin-top: 10px;
+    transform: translate(0%, 0);
 }
 
 .calendar-tooltip h4 {
     margin: 0 0 4px 0;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
 }
 
@@ -488,4 +617,163 @@ td.clickable-cell:hover::before {
 
 .future-section li {
     color: var(--color-future);
+}
+
+/* MODAL STYLING */
+.scene-list {
+    padding: 10px 0;
+}
+
+.scene-section {
+    margin-bottom: 15px;
+}
+
+.scene-section h4 {
+    margin: 0 0 4px 0;
+    padding-bottom: 4px;
+    font-size: 14px;
+}
+
+.scene-section ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.scene-section li {
+    margin-bottom: 4px;
+}
+
+.scene-section a {
+    color: var(--text-normal);
+    text-decoration: none;
+}
+
+.scene-section a:hover {
+    text-decoration: underline;
+    color: var(--text-accent);
+}
+
+/* Section-specific colors */
+.overdue-section h4 {
+    color: var(--color-overdue);
+}
+
+.future-section h4 {
+    color: var(--color-future);
+}
+
+.completed-section li.stage-zero a {
+    color: var(--color-zero);
+}
+
+.completed-section li.stage-author a {
+    color: var(--color-author);
+}
+
+.completed-section li.stage-house a {
+    color: var(--color-house);
+}
+
+.completed-section li.stage-press a {
+    color: var(--color-press);
+}
+
+/* Week number cell styling with separator */
+.manuscript-calendar .week-number {
+    background-color: var(--background-secondary);
+    color: var(--text-muted);
+    font-size: 0.85em;
+    text-align: center;
+    min-width: 1.5em;
+    font-variant-numeric: tabular-nums;
+    cursor: default;
+}
+
+.manuscript-calendar .week-separator {
+    border-right: 1px solid var(--background-modifier-border);
+}
+
+/* Stage colors for week completion */
+.manuscript-calendar .week-completed.stage-zero {
+    color: var(--color-zero);
+}
+
+.manuscript-calendar .week-completed.stage-author {
+    color: var(--color-author);
+}
+
+.manuscript-calendar .week-completed.stage-house {
+    color: var(--color-house);
+}
+
+.manuscript-calendar .week-completed.stage-press {
+    color: var(--color-press);
+}
+
+/* Stage indicator colors */
+
+.week-number-small {
+    font-size: 10px; /* Smaller week number */
+    display: inline-block;
+    min-width: auto; /* Allow width to shrink */
+    line-height: 1;
+}
+
+/* New class to hide the week number when the ratio is shown */
+.hidden-week-number {
+    display: none !important; 
+}
+
+.week-ratio {
+    display: inline-flex;
+}
+
+.ratio-svg {
+    width: var(--ratio-svg-size);
+    height: var(--ratio-svg-size);
+    vertical-align: baseline;
+    display: inline-block;
+    padding-right: 4px; /* Increased padding to 6px */
+}
+
+.ratio-numerator, 
+.ratio-denominator {
+    font-size: 9px;
+    font-family: sans-serif;
+    font-weight: bold;
+    fill: currentColor;
+}
+
+.ratio-line {
+    stroke: currentColor;
+    stroke-width: 1.5;
+}
+
+.week-completed {
+    /* Remove this class as it's redundant and might cause issues */
+}
+
+/* Stage-specific colors for the ratio SVG */
+.stage-zero .ratio-svg {
+    color: var(--color-zero);
+}
+
+.stage-author .ratio-svg {
+    color: var(--color-author);
+}
+
+.stage-house .ratio-svg {
+    color: var(--color-house);
+}
+
+.stage-press .ratio-svg {
+    color: var(--color-press);
+}
+
+/* Ensure the week separator border is visible */
+.week-separator {
+    border-right: 1px solid var(--background-modifier-border);
+    position: relative;
+    z-index: 1;
+    background-color: var(--background-secondary);
 }

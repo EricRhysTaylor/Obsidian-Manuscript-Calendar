@@ -12,13 +12,16 @@ const pluginDirs = [
   '/Users/erictaylor/Documents/Code Projects/Test Obsidian Vault/.obsidian/plugins/manuscript-calendar'
 ];
 
-// Files to copy
-const filesToCopy = ['main.js', 'manifest.json', 'styles.css'];
+// Files to copy - ADD README.md HERE
+const filesToCopy = ['main.js', 'manifest.json', 'styles.css', 'README.md'];
 
 /**
  * Copy plugin files to all target directories
  */
 export function copyBuildFiles() {
+  let totalFilesCopied = 0;
+  let totalErrors = 0;
+
   // Process each target directory
   pluginDirs.forEach(pluginDir => {
     // Create directory if needed
@@ -27,27 +30,43 @@ export function copyBuildFiles() {
       console.log(`Created directory: ${pluginDir}`);
     }
 
-    // Copy all files
-    let filesCopied = 0;
-    let errors = 0;
+    // Copy all files listed in filesToCopy
+    let filesCopiedInDir = 0;
+    let errorsInDir = 0;
     
     filesToCopy.forEach(file => {
       const sourcePath = path.join(__dirname, file);
+      const destPath = path.join(pluginDir, file);
       if (fs.existsSync(sourcePath)) {
-        fs.copyFileSync(sourcePath, path.join(pluginDir, file));
-        filesCopied++;
+        try {
+          fs.copyFileSync(sourcePath, destPath);
+          filesCopiedInDir++;
+        } catch (err) {
+          console.error(`✗ Error copying ${file} to ${pluginDir}:`, err);
+          errorsInDir++;
+        }
       } else {
-        console.error(`✗ ${file} not found`);
-        errors++;
+        console.error(`✗ Source file not found: ${sourcePath}`);
+        errorsInDir++;
       }
     });
     
-    // Log a summary
-    console.log(`✓ Copied ${filesCopied} files to ${pluginDir}`);
-    if (errors > 0) {
-      console.log(`  (${errors} errors encountered)`);
+    // Log per-directory summary
+    console.log(`✓ Copied ${filesCopiedInDir} files to ${pluginDir}`);
+    if (errorsInDir > 0) {
+      console.log(`  (${errorsInDir} errors encountered for this directory)`);
     }
+    totalFilesCopied += filesCopiedInDir;
+    totalErrors += errorsInDir;
   });
+
+  // Log a final summary (optional but potentially useful)
+  console.log(`-----`);
+  console.log(`Build Copy Summary: Copied ${totalFilesCopied} files total across ${pluginDirs.length} directories.`);
+  if (totalErrors > 0) {
+    console.log(`  Total errors encountered: ${totalErrors}`);
+  }
+  console.log(`-----`);
 }
 
 // If this script is run directly

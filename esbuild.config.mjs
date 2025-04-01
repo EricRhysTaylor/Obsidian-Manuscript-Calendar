@@ -56,7 +56,7 @@ if (prod) {
 	// For production builds
 	await context.rebuild();
 	
-	// After building, copy files to Obsidian vaults
+	// After building, copy files to Obsidian vaults using the imported function
 	copyBuildFiles();
 	
 	process.exit(0);
