@@ -171,22 +171,20 @@ export default class ManuscriptCalendarPlugin extends Plugin {
 
     // Moved checkFileAndUpdateCalendar here as a class method
     checkFileAndUpdateCalendar(abstractFile: TAbstractFile) {
-        // Ensure it's a file and not a folder before proceeding
+        // Use proper type checking instead of casting
         if (!(abstractFile instanceof TFile)) {
             return; // Ignore folders
         }
         
-        // Now we know it's a TFile, cast it
-        const file = abstractFile as TFile;
-
-        if (file && file.path) {
+        // Now we know it's a TFile, no need to cast
+        if (abstractFile.path) {
             const manuscriptFolderPath = this.settings.manuscriptFolder;
             const isInManuscriptFolder = 
-                !manuscriptFolderPath || file.path.includes(manuscriptFolderPath.replace(/^\/+|\/+$/g, ''));
+                !manuscriptFolderPath || abstractFile.path.includes(manuscriptFolderPath.replace(/^\/+|\/+$/g, ''));
             
             if (isInManuscriptFolder) {
-                this.debugLog(`File in manuscript folder changed: ${file.path}`);
-                const metadata = this.app.metadataCache.getFileCache(file);
+                this.debugLog(`File in manuscript folder changed: ${abstractFile.path}`);
+                const metadata = this.app.metadataCache.getFileCache(abstractFile);
                 if (metadata && metadata.frontmatter) {
                     this.debugLog(`Frontmatter detected:`, metadata.frontmatter);
                     if (metadata.frontmatter["Publish Stage"]) {
@@ -221,11 +219,7 @@ export default class ManuscriptCalendarPlugin extends Plugin {
         this.debugLog('Unloading Manuscript Calendar plugin...');
         
         try {
-            // Properly detach all leaves of this view type
-            this.app.workspace.detachLeavesOfType(VIEW_TYPE_MANUSCRIPT_CALENDAR);
-            
             // All registered events are automatically unregistered by Obsidian's Plugin system
-            
             this.debugLog('Manuscript Calendar plugin unloaded successfully');
         } catch (error) {
             console.error('Error unloading Manuscript Calendar plugin:', error);
