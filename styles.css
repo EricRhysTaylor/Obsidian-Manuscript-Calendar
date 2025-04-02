@@ -16,7 +16,7 @@ If your plugin does not need CSS, delete this file.
     --color-overdue: #d95353;  /* Red for overdue items */
     --color-future: #8e8e8e;   /* Grey for future todos */
     --color-text-today: #ff9100; /* Orange for today's date */
-    --ratio-svg-size: 28px; /* Single control point for SVG size */
+    --ratio-svg-size: 24px; /* Increased from 20px for better visibility */
     
     /* SVG ratio stage colors */
     --stage-zero-color: var(--color-zero);
@@ -25,9 +25,13 @@ If your plugin does not need CSS, delete this file.
     --stage-press-color: var(--color-press);
 }
 
+/* Add padding to the view-content container */
+.view-content.manuscript-calendar-view {
+    padding: 20px 20px 40px 20px;
+}
+
 /* CALENDAR CONTAINER AND LAYOUT */
 .manuscript-calendar-view {
-    padding: 0 1rem 0.5rem 1rem;
     overflow-x: auto;
     display: flex;
     flex-direction: column;
@@ -61,7 +65,6 @@ If your plugin does not need CSS, delete this file.
 .month-selector span {
     position: relative;
     font-weight: 500;
-    font-size: 1.2rem;
     margin-right: auto;
     display: flex;
     align-items: baseline;
@@ -72,12 +75,6 @@ If your plugin does not need CSS, delete this file.
     margin-right: 5px;
 }
 
-/* Replace the after pseudo-element with a different approach */
-.month-selector span::after {
-    content: attr(data-year);
-    color: var(--alternating-color-1);
-    font-weight: 600;
-}
 
 /* Remove the old stage indicator styles */
 .month-selector span[data-stage]:not([data-stage=""]):not([data-stage="undefined"]) {
@@ -87,17 +84,19 @@ If your plugin does not need CSS, delete this file.
 
 /* Month/Year elements */
 .month-text {
+    font-size: 22px !important;
     font-weight: 500;
 }
 
 .year-text {
-    color: var(--alternating-color-1);
+    font-size: 22px !important;
     font-weight: 600;
+    color: var(--text-accent);
 }
 
 /* Create the stage badge as a proper exponent */
 .month-selector span .stage-indicator {
-    font-size: 0.5rem;
+    font-size: 9px;
     font-weight: 300;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -155,7 +154,7 @@ If your plugin does not need CSS, delete this file.
     font-size: 0.7rem;
     font-weight: 500;
     position: relative;
-    top: -2px;
+    top: -1px;
     padding: 4px 8px !important;
     background: none !important;
     border: none !important;
@@ -178,21 +177,43 @@ If your plugin does not need CSS, delete this file.
     width: 100%;
     table-layout: fixed; /* Ensure equal cell widths */
     border-spacing: 0; /* Eliminate gaps between cells */
+    position: relative; /* For pseudo-element positioning */
 }
 
-/* Week column separator */
-.week-separator {
-    border-right: 1px solid var(--background-modifier-border);
-    position: relative;
-    z-index: 1;
+/* Week number cell styling */
+.manuscript-calendar .week-number {
     background-color: var(--background-secondary);
+    color: var(--text-muted);
+    font-size: 9px;
+    text-align: center;
+    min-width: 32px;
+    max-width: 32px;
+    height: 32px;
+    font-variant-numeric: tabular-nums;
+    cursor: default;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
 }
 
-.manuscript-calendar th.week-separator,
-.manuscript-calendar td.week-separator {
-    border-right: 1px solid var(--background-modifier-border);
-    width: 40px; /* Fixed width for week number column */
-    height: 100%; /* Ensure full height coverage */
+/* Create a continuous vertical border using pseudo-element */
+.manuscript-calendar::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 32px; /* Width of week number column */
+    bottom: 0;
+    width: 1px;
+    background-color: var(--background-modifier-border);
+    z-index: 1;
+}
+
+/* Remove any existing cell borders */
+.manuscript-calendar th:not(.week-number):first-of-type,
+.manuscript-calendar td:not(.week-number):first-of-type {
+    border-left: none;
 }
 
 .manuscript-calendar th,
@@ -209,13 +230,22 @@ If your plugin does not need CSS, delete this file.
 
 .manuscript-calendar th {
     padding-bottom: 4px;
+    padding-top: 0;
     font-size: 0.6rem;
-    font-weight: 400;
+    font-weight: 600;
     color: var(--text-muted);
+    vertical-align: bottom;
+    line-height: 1;
 }
 
 .manuscript-calendar th.week-number {
-    font-size: 8px; /* Smaller header font */
+    font-size: 0.6rem;
+    padding-bottom: 4px;
+    padding-top: 0;
+    vertical-align: bottom; /* Ensure bottom alignment */
+    font-weight: 600;
+    line-height: 1;
+    height: auto; /* Let content determine height */
 }
 
 .week-number {
@@ -232,8 +262,8 @@ If your plugin does not need CSS, delete this file.
 .manuscript-calendar td {
     width: calc(100% / 7);
     border-radius: 4px;
-    padding-top: 4px;
-    padding-bottom: 8px; /* Reduced from 12px to 8px */
+    padding-top: 8px;
+    padding-bottom: 12px;
 }
 
 .manuscript-calendar td.other-month {
@@ -293,7 +323,7 @@ td.clickable-cell:hover::before {
     border-radius: 0;
     display: block;
     position: absolute;
-    bottom: 4px; /* Reduced from 6px to 4px */
+    bottom: 6px;
     left: 50%;
     transform: translateX(-50%);
 }
@@ -306,7 +336,7 @@ td.clickable-cell:hover::before {
     background-color: var(--text-normal);
     opacity: 0.15;
     position: absolute;
-    bottom: 4px; /* Reduced from 6px to 4px */
+    bottom: 6px;
     left: 50%;
     transform: translateX(-50%);
 }
@@ -383,11 +413,15 @@ td.clickable-cell:hover::before {
 .calendar-legend {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 8px; /* Reduced from 10px */
     flex-wrap: wrap;
-    padding: 4px 10px;
-    border-radius: 6px;
+    padding: 3px 8px; /* Reduced from 4px 10px */
+    border-radius: 8px; /* Increased for better roundness */
     background-color: var(--background-secondary);
+    transform: scale(0.8); /* Scale down by 20% */
+    transform-origin: center top; /* Keep the legend centered */
+    border: 1px dashed var(--text-accent); /* Changed from --alternating-color-1 to --text-accent */
+    margin: 0 auto; /* Center the legend horizontally */
 }
 
 .legend-item {
@@ -678,21 +712,6 @@ td.clickable-cell:hover::before {
     color: var(--color-press);
 }
 
-/* Week number cell styling with separator */
-.manuscript-calendar .week-number {
-    background-color: var(--background-secondary);
-    color: var(--text-muted);
-    font-size: 0.85em;
-    text-align: center;
-    min-width: 1.5em;
-    font-variant-numeric: tabular-nums;
-    cursor: default;
-}
-
-.manuscript-calendar .week-separator {
-    border-right: 1px solid var(--background-modifier-border);
-}
-
 /* Stage colors for week completion */
 .manuscript-calendar .week-completed.stage-zero {
     color: var(--color-zero);
@@ -713,9 +732,8 @@ td.clickable-cell:hover::before {
 /* Stage indicator colors */
 
 .week-number-small {
-    font-size: 10px; /* Smaller week number */
+    font-size: 0.65rem;
     display: inline-block;
-    min-width: auto; /* Allow width to shrink */
     line-height: 1;
 }
 
@@ -724,33 +742,35 @@ td.clickable-cell:hover::before {
     display: none !important; 
 }
 
+/* Week ratio styling */
 .week-ratio {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    width: 32px;
 }
 
 .ratio-svg {
     width: var(--ratio-svg-size);
     height: var(--ratio-svg-size);
-    vertical-align: baseline;
+    vertical-align: middle;
     display: inline-block;
-    padding-right: 4px; /* Increased padding to 6px */
 }
 
 .ratio-numerator, 
 .ratio-denominator {
-    font-size: 9px;
+    font-size: 11px;
     font-family: sans-serif;
     font-weight: bold;
     fill: currentColor;
 }
 
+/* Make the line horizontal and position it between numbers */
 .ratio-line {
     stroke: currentColor;
     stroke-width: 1.5;
-}
-
-.week-completed {
-    /* Remove this class as it's redundant and might cause issues */
+    transform: none; /* Remove rotation */
 }
 
 /* Stage-specific colors for the ratio SVG */
@@ -768,12 +788,4 @@ td.clickable-cell:hover::before {
 
 .stage-press .ratio-svg {
     color: var(--color-press);
-}
-
-/* Ensure the week separator border is visible */
-.week-separator {
-    border-right: 1px solid var(--background-modifier-border);
-    position: relative;
-    z-index: 1;
-    background-color: var(--background-secondary);
 }

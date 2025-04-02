@@ -64,37 +64,25 @@ function createRatioSVG(numerator: number, denominator: number): SVGElement {
 
     // Create numerator text
     const numeratorText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    numeratorText.setAttribute("x", "15");
-    numeratorText.setAttribute("y", "11");
+    numeratorText.setAttribute("x", "10");
+    numeratorText.setAttribute("y", "10");
     numeratorText.setAttribute("text-anchor", "middle");
     numeratorText.classList.add("ratio-numerator");
     numeratorText.textContent = numerator.toString();
     svg.appendChild(numeratorText);
 
-    // Create angled line (10 degrees)
+    // Create horizontal line
     const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    
-    // Calculate coordinates for a line at 10 degree angle
-    const centerX = 15;
-    const centerY = 15;
-    const lineLength = 14;
-    const angleRad = 10 * Math.PI / 180; // 10 degrees in radians
-    
-    const x1 = centerX - lineLength/2 * Math.cos(angleRad);
-    const y1 = centerY + lineLength/2 * Math.sin(angleRad);
-    const x2 = centerX + lineLength/2 * Math.cos(angleRad);
-    const y2 = centerY - lineLength/2 * Math.sin(angleRad);
-    
-    line.setAttribute("x1", x1.toString());
-    line.setAttribute("y1", y1.toString());
-    line.setAttribute("x2", x2.toString());
-    line.setAttribute("y2", y2.toString());
+    line.setAttribute("x1", "3");
+    line.setAttribute("y1", "13");
+    line.setAttribute("x2", "17");
+    line.setAttribute("y2", "13");
     line.classList.add("ratio-line");
     svg.appendChild(line);
 
     // Create denominator text
     const denominatorText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    denominatorText.setAttribute("x", "15");
+    denominatorText.setAttribute("x", "10");
     denominatorText.setAttribute("y", "23");
     denominatorText.setAttribute("text-anchor", "middle");
     denominatorText.classList.add("ratio-denominator");
@@ -646,7 +634,7 @@ class ManuscriptCalendarView extends ItemView {
         const headerRow = calendarTable.createEl('tr');
         
         // Add the week number header with a separator
-        const weekHeader = headerRow.createEl('th', { text: 'W', cls: 'week-number week-separator' });
+        const weekHeader = headerRow.createEl('th', { text: 'W', cls: 'week-number' });
         
         // Updated day labels with three letters
         const dayLabels = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -1163,7 +1151,7 @@ class ManuscriptCalendarView extends ItemView {
             const weekNum = this.getWeekNumber(currentDate);
             const weekYear = `${currentDate.getFullYear()}-W${weekNum}`;
             const weekCell = weekRow.createEl('td', { 
-                cls: 'week-number week-separator' 
+                cls: 'week-number' 
             });
 
             // Get stats for this week
