@@ -398,36 +398,51 @@ td.clickable-cell:hover::before {
 
 /* LEGEND STYLING */
 .calendar-legend-separator {
-    display: none;
+    height: 1px;
+    background-color: var(--background-modifier-border);
+    margin: 12px 0;
 }
 
 .legend-container {
-    margin-top: 0;
+    padding: 0;
+    margin-top: 10px;
 }
 
 .legend-wrapper {
+    width: 100%;
     display: flex;
     justify-content: center;
 }
 
 .calendar-legend {
     display: flex;
-    justify-content: center;
-    gap: 8px; /* Reduced from 10px */
-    flex-wrap: wrap;
-    padding: 3px 8px; /* Reduced from 4px 10px */
-    border-radius: 8px; /* Increased for better roundness */
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: nowrap;
+    padding: 6px 10px;
     background-color: var(--background-secondary);
-    transform: scale(0.8); /* Scale down by 20% */
+    border-radius: 6px;
     transform-origin: center top; /* Keep the legend centered */
-    border: 1px dashed var(--text-accent); /* Changed from --alternating-color-1 to --text-accent */
+    transform: scale(0.8);
     margin: 0 auto; /* Center the legend horizontally */
+    gap: 8px; /* Add consistent spacing between items */
+    border: none; /* Remove any border from the entire legend */
 }
 
 .legend-item {
     display: flex;
     align-items: center;
-    margin: 2px 0;
+    padding: 3px 8px;
+    margin: 2px 3px;
+    border: 1px solid transparent; /* Invisible border for consistent sizing */
+    border-radius: 4px;
+}
+
+/* Add dashed border only to the current stage in the legend */
+.legend-item.current-stage {
+    border: 1px dashed var(--text-accent);
+    padding: 3px 8px;
+    background-color: var(--background-primary-alt);
 }
 
 /* SVG ICONS IN LEGEND */
