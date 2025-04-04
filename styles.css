@@ -429,6 +429,17 @@ td.clickable-cell:hover::before {
     border: none; /* Remove any border from the entire legend */
 }
 
+/* Responsive legend styles */
+@media (max-width: 600px) {
+    .calendar-legend {
+        flex-wrap: wrap;
+    }
+    .legend-item {
+        flex: 0 0 auto;
+        margin-bottom: 4px;
+    }
+}
+
 .legend-item {
     display: flex;
     align-items: center;
@@ -439,10 +450,11 @@ td.clickable-cell:hover::before {
 }
 
 /* Add dashed border only to the current stage in the legend */
-.legend-item.current-stage {
-    border: 1px dashed var(--text-accent);
-    padding: 3px 8px;
+.legend-container .legend-wrapper .calendar-legend .legend-item.current-stage {
+    border: 2px dashed var(--text-accent) !important;
     background-color: var(--background-primary-alt);
+    padding: 3px 8px;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
 /* SVG ICONS IN LEGEND */
@@ -510,17 +522,6 @@ td.clickable-cell:hover::before {
     padding: 0;
     font-weight: 200;
     color: var(--text-normal);
-}
-
-/* RESPONSIVE LEGEND */
-@media (max-width: 600px) {
-    .calendar-legend {
-        flex-wrap: wrap;
-    }
-    .legend-item {
-        flex: 0 0 auto;
-        margin-bottom: 4px;
-    }
 }
 
 /* SVG ICONS STYLING */
