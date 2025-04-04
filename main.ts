@@ -668,6 +668,11 @@ class ManuscriptCalendarView extends ItemView {
         legendItems.forEach(item => {
             const legendItem = calendarLegend.createDiv({ cls: 'legend-item' });
             
+            // Add current-stage class if this is the current highest stage
+            if (item.cls === `stage-${this.currentHighestStage.toLowerCase()}`) {
+                legendItem.classList.add('current-stage');
+            }
+            
             // Create the swatch div with specific stage class
             const legendSwatch = legendItem.createDiv({ cls: `legend-swatch ${item.cls}` });
             
