@@ -27,7 +27,7 @@ If your plugin does not need CSS, delete this file.
 
 /* Add padding to the view-content container */
 .view-content.manuscript-calendar-view {
-    padding: 20px 20px 40px 20px;
+    padding: 20px 20px 20px 20px;
 }
 
 /* CALENDAR CONTAINER AND LAYOUT */
@@ -263,7 +263,7 @@ If your plugin does not need CSS, delete this file.
     width: calc(100% / 7);
     border-radius: 4px;
     padding-top: 8px;
-    padding-bottom: 12px;
+    padding-bottom: 8px;
 }
 
 .manuscript-calendar td.other-month {
@@ -400,12 +400,12 @@ td.clickable-cell:hover::before {
 .calendar-legend-separator {
     height: 1px;
     background-color: var(--background-modifier-border);
-    margin: 12px 0;
+    margin: 6px 0;
 }
 
 .legend-container {
     padding: 0;
-    margin-top: 10px;
+    margin-top: 5px;
 }
 
 .legend-wrapper {
