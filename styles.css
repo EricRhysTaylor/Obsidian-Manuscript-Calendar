@@ -419,13 +419,13 @@ td.clickable-cell:hover::before {
     justify-content: space-around;
     align-items: center;
     flex-wrap: nowrap;
-    padding: 6px 10px;
+    padding: 4px 6px;
     background-color: var(--background-secondary);
     border-radius: 6px;
     transform-origin: center top; /* Keep the legend centered */
     transform: scale(0.8);
     margin: 0 auto; /* Center the legend horizontally */
-    gap: 8px; /* Add consistent spacing between items */
+    gap: 2px; /* Reduced from 8px for tighter spacing */
     border: none; /* Remove any border from the entire legend */
 }
 
@@ -443,8 +443,8 @@ td.clickable-cell:hover::before {
 .legend-item {
     display: flex;
     align-items: center;
-    padding: 3px 8px;
-    margin: 2px 3px;
+    padding: 2px 4px; /* Reduced from 3px 8px */
+    margin: 1px 2px; /* Reduced from 2px 3px */
     border: 1px solid transparent; /* Invisible border for consistent sizing */
     border-radius: 4px;
 }
@@ -453,15 +453,15 @@ td.clickable-cell:hover::before {
 .legend-container .legend-wrapper .calendar-legend .legend-item.current-stage {
     border: 2px dashed var(--text-accent) !important;
     background-color: var(--background-primary-alt);
-    padding: 3px 8px;
+    padding: 2px 4px; /* Reduced to match other items */
     box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
 /* SVG ICONS IN LEGEND */
 .legend-swatch {
-    width: 16px;
-    height: 16px;
-    margin-right: 6px;
+    width: 14px; /* Reduced from 16px */
+    height: 14px; /* Reduced from 16px */
+    margin-right: 3px; /* Reduced from 6px */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -470,8 +470,8 @@ td.clickable-cell:hover::before {
 }
 
 .legend-swatch svg {
-    width: 16px;
-    height: 16px;
+    width: 14px; /* Reduced from 16px */
+    height: 14px; /* Reduced from 16px */
     stroke-width: 2px;
     opacity: 1 !important;
 }
@@ -748,7 +748,7 @@ td.clickable-cell:hover::before {
 /* Stage indicator colors */
 
 .week-number-small {
-    font-size: 0.65rem;
+    font-size: 0.5rem;
     display: inline-block;
     line-height: 1;
 }
