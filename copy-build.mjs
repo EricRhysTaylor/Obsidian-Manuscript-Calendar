@@ -13,7 +13,7 @@ const pluginDirs = [
 ];
 
 // Files to copy - ADD README.md HERE
-const filesToCopy = ['main.js', 'manifest.json', 'styles.css', 'README.md'];
+const filesToCopy = ['main.js', 'manifest.json', 'styles.css', 'README.md', 'screenshot.png'];
 
 /**
  * Copy plugin files to all target directories
