@@ -333,8 +333,8 @@ td.clickable-cell:hover::before {
     width: 14px;
     display: block;
     border-radius: 0;
-    background-color: var(--text-normal);
-    opacity: 0.15;
+    background-color: transparent;
+    opacity: 0;
     position: absolute;
     bottom: 6px;
     left: 50%;
