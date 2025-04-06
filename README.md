@@ -12,7 +12,7 @@ It provides a radial visualization of your manuscript, organizing scenes by act,
 You can find it on GitHub or by searching for "Manuscript Timeline" in the Obsidian Community Plugins browser.
 </div>
 
-## Features
+# Features
 
 *   Compact calendar view that fits in the sidebar
 *   Week numbers displayed in the leftmost column
@@ -34,7 +34,7 @@ You can find it on GitHub or by searching for "Manuscript Timeline" in the Obsid
 </div>
 </div>
 
-## How to Use
+# How to Use
 
 1.  Install the plugin via Obsidian's Community Plugins browser.
 2.  Configure the Manuscript Folder in the plugin settings (Settings -> Community Plugins -> Manuscript Calendar) if your scenes reside in a specific folder. Leave blank to scan the entire vault.
@@ -57,7 +57,7 @@ Words: 1500         # Optional: Word count for weekly ratio. Defaults to 0.
 ---
 ```
 
-## Filtering Logic & Ratios
+# Filtering Logic & Ratios
 
 The calendar determines the overall manuscript Publish Stage by finding the highest stage present among all scene files (regardless of folder setting). The Zero stage is a special case in that author is encourage not to revise those scenes. Just get them written until the entire Zero draft is complete. That is why completed Zero stages with Revision > 0 are not counted. (you are dwaddling and need to move on!)
 
@@ -68,21 +68,21 @@ The weekly ratio SVG is calculated based on scenes matching this highest stage:
 
 Dots on individual days reflect the Publish Stage of scenes completed on that day.
 
-## Settings
+# Settings
 
 *   Manuscript Folder: Specify the folder containing your manuscript files (leave blank to scan entire vault).
 *   Debug Mode: Enable detailed console logging for troubleshooting.
 
-## Installation
+# Installation
 
-### From Obsidian
+## From Obsidian
 
 1.  Open Settings > Community plugins.
 2.  Turn off Safe mode if it's on.
 3.  Click Browse and search for "Manuscript Calendar".
 4.  Click Install and then Enable.
 
-### Manual Installation
+## Manual Installation
 
 1.  Download the latest `main.js`, `styles.css`, `manifest.json`, `Readme.md` from the [Releases](https://github.com/EricRhysTaylor/Obsidian-Manuscript-Calendar/releases) page of the GitHub repository.
 2.  Create a new folder named manuscript-calendar inside your Obsidian vault's plugins folder (`YourVault/.obsidian/plugins/`).
@@ -90,7 +90,7 @@ Dots on individual days reflect the Publish Stage of scenes completed on that da
 4.  Reload Obsidian (Ctrl/Cmd+R).
 5.  Enable the plugin in `Settings` > `Community plugins`.
 
-## Author
+# Author
 
 Created by Eric Rhys Taylor
 
@@ -104,6 +104,6 @@ If you encounter any issues or have feature requests, please file an issue on th
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="width: 150px;" >
 </a>
 
-## License
+# License
 
 This project is licensed under the MIT License - see the `LICENSE` file for details.

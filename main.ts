@@ -726,6 +726,7 @@ class ManuscriptCalendarView extends ItemView {
         const revisionMap = new Map<string, Array<{revision: number, publishStage: string}>>();
         let notesByDate = new Map<string, DataviewPage[]>();
         let todoFutureDates = new Set<string>(); // Track future Todo dates
+        let workingFutureDates = new Set<string>(); // Track future Working dates
         let overdueDates = new Set<string>(); // Track overdue dates
         
         // Track completed scenes by week and stage
@@ -820,308 +821,294 @@ class ManuscriptCalendarView extends ItemView {
                 
                 // Process all pages
                 if (pages.length > 0) {
-                // Add this new section to process Todo scenes with future dates
-                // Get all pages with Todo status
-                const todoPages = pages.filter(page => {
-                    // Check if Status property exists and equals "Todo"
-                    const hasTodoStatus = page.Status && (
-                        Array.isArray(page.Status) 
-                            ? page.Status.includes("Todo") 
-                            : page.Status === "Todo"
-                    );
-                    
-                    // Check if Class property exists and equals "Scene"
-                    const hasSceneClass = page.Class && (
-                        Array.isArray(page.Class) 
-                            ? page.Class.includes("Scene") 
-                            : page.Class === "Scene"
-                    );
-                    
-                    return hasTodoStatus && hasSceneClass;
-                });
-                
-                // Process Todo pages to identify future dates
-                todoPages.forEach(page => {
-                    if (!page.Due) return;
-                    
-                    // Parse the Due date
-                    let dueDate: Date;
-                    try {
-                        // Extract date from link if needed
-                        let rawDate: string = typeof page.Due === 'object' && page.Due.path 
-                            ? page.Due.path 
-                            : page.Due as string;
-                        dueDate = new Date(rawDate);
+                    // Add this new section to process Todo and Working scenes with future dates
+                    // Get all pages with Todo or Working status
+                    const todoOrWorkingPages = pages.filter(page => {
+                        const hasSceneClass = page.Class && (
+                            Array.isArray(page.Class) 
+                                ? page.Class.includes("Scene") 
+                                : page.Class === "Scene"
+                        );
                         
-                        if (isNaN(dueDate.getTime())) return;
+                        const hasRelevantStatus = page.Status && (
+                            (Array.isArray(page.Status) && (page.Status.includes("Todo") || page.Status.includes("Working"))) ||
+                            (typeof page.Status === 'string' && (page.Status === "Todo" || page.Status === "Working"))
+                        );
                         
-                        // Check if the due date is in the future
-                        if (dueDate > today) {
-                            // Add to the future Todo dates set
-                            const dateKey = dueDate.toISOString().split('T')[0];
-                            todoFutureDates.add(dateKey);
-                            
-                            // Add to notesByDate for potential clicking/opening
-                            if (!notesByDate.has(dateKey)) {
-                                notesByDate.set(dateKey, []);
-                            }
-                            const notes = notesByDate.get(dateKey);
-                            if (notes) {
-                                notes.push(page);
-                            }
-                        }
-                    } catch (error) {
-                        return;
-                    }
-                });
-                
-                // Find overdue items - not complete but due date is in the past
-                const overduePages = pages.filter(page => {
-                    // Check if Status is NOT Complete
-                    const isNotComplete = page.Status && (
-                        Array.isArray(page.Status) 
-                            ? !page.Status.includes("Complete") 
-                            : page.Status !== "Complete"
-                    );
+                        return hasSceneClass && hasRelevantStatus;
+                    });
                     
-                    // Check if Class property exists and equals "Scene"
-                    const hasSceneClass = page.Class && (
-                        Array.isArray(page.Class) 
-                            ? page.Class.includes("Scene") 
-                            : page.Class === "Scene"
-                    );
-                    
-                    // Has a Due date that's in the past
-                    let isDueDateInPast = false;
-                    if (page.Due) {
+                    // Process Todo/Working pages to identify future dates
+                    todoOrWorkingPages.forEach(page => {
+                        if (!page.Due) return;
+                        
+                        // Parse the Due date
+                        let dueDate: Date;
                         try {
-                            // Extract date from link if needed
-                            let rawDueDate: string = typeof page.Due === 'object' && page.Due.path 
+                            let rawDate: string = typeof page.Due === 'object' && page.Due.path 
                                 ? page.Due.path 
                                 : page.Due as string;
-                            const dueDate = new Date(rawDueDate);
-                            isDueDateInPast = !isNaN(dueDate.getTime()) && dueDate < today;
+                            dueDate = new Date(rawDate);
+                            
+                            if (isNaN(dueDate.getTime())) return;
+                            
+                            // Check if the due date is in the future
+                            if (dueDate > today) {
+                                const dateKey = dueDate.toISOString().split('T')[0];
+                                
+                                // Determine status and add to appropriate set
+                                const isWorking = (Array.isArray(page.Status) && page.Status.includes("Working")) || page.Status === "Working";
+                                if (isWorking) {
+                                    workingFutureDates.add(dateKey);
+                                } else { // Must be Todo
+                                    todoFutureDates.add(dateKey);
+                                }
+                                
+                                // Add to notesByDate for potential clicking/opening
+                                if (!notesByDate.has(dateKey)) {
+                                    notesByDate.set(dateKey, []);
+                                }
+                                notesByDate.get(dateKey)?.push(page);
+                            }
                         } catch (error) {
-                            isDueDateInPast = false;
+                            return;
                         }
-                    }
-                    
-                    return isNotComplete && hasSceneClass && isDueDateInPast;
-                });
-                
-                // Process overdue pages and add to overdueDates set
-                overduePages.forEach(page => {
-                    if (!page.Due) return;
-                    
-                    try {
-                        // Extract date from link if needed
-                        let rawDate: string = typeof page.Due === 'object' && page.Due.path 
-                            ? page.Due.path 
-                            : page.Due as string;
-                        const dueDate = new Date(rawDate);
+                    });
+
+                    // Find overdue items - not complete but due date is in the past
+                    const overduePages = pages.filter(page => {
+                        const isNotComplete = page.Status && (
+                            (Array.isArray(page.Status) && !page.Status.includes("Complete")) ||
+                            (typeof page.Status === 'string' && page.Status !== "Complete")
+                        );
                         
-                        if (isNaN(dueDate.getTime())) return;
+                        const hasSceneClass = page.Class && (
+                            Array.isArray(page.Class) 
+                                ? page.Class.includes("Scene") 
+                                : page.Class === "Scene"
+                        );
                         
-                        // Format date as YYYY-MM-DD
-                        const dateKey = dueDate.toISOString().split('T')[0];
-                        
-                        // Add to overdueDates set
-                        overdueDates.add(dateKey);
-                        
-                        // Also add to notesByDate for potential clicking/opening
-                        if (!notesByDate.has(dateKey)) {
-                            notesByDate.set(dateKey, []);
+                        let isDueDateInPast = false;
+                        if (page.Due) {
+                            try {
+                                let rawDueDate: string = typeof page.Due === 'object' && page.Due.path 
+                                    ? page.Due.path 
+                                    : page.Due as string;
+                                const dueDate = new Date(rawDueDate);
+                                // Check if date is valid and strictly before today (ignoring time)
+                                isDueDateInPast = !isNaN(dueDate.getTime()) && dueDate.setHours(0,0,0,0) < today.setHours(0,0,0,0);
+                            } catch (error) {
+                                isDueDateInPast = false;
+                            }
                         }
                         
-                        const notes = notesByDate.get(dateKey);
-                        if (notes) {
-                            notes.push(page);
-                        }
-                    } catch (error) {
-                        return;
-                    }
-                });
-                
-                // Filter for pages where Status = "Complete" AND Class = "Scene"
-                const completedScenes = pages.filter(page => {
-                    // Check if Status property exists and equals "Complete"
-                    const hasCompleteStatus = page.Status && (
-                        Array.isArray(page.Status) 
-                            ? page.Status.includes("Complete") 
-                            : page.Status === "Complete"
-                    );
-                    
-                    // Check if Class property exists and equals "Scene"
-                    const hasSceneClass = page.Class && (
-                        Array.isArray(page.Class) 
-                            ? page.Class.includes("Scene") 
-                            : page.Class === "Scene"
-                    );
-                    
-                    return hasCompleteStatus && hasSceneClass;
-                });
-                
-                // Process completed scenes and organize by due date
-                completedScenes.forEach(page => {
-                    if (!page.Due) return;
-                    
-                    try {
-                        // Extract date from link if needed
-                        let rawDate: string = typeof page.Due === 'object' && page.Due.path 
-                            ? page.Due.path 
-                            : page.Due as string;
-                        const dueDate = new Date(rawDate);
-                        
-                        if (isNaN(dueDate.getTime())) return;
+                        return isNotComplete && hasSceneClass && isDueDateInPast;
+                    });
+
+                    // Process overdue pages
+                    overduePages.forEach(page => {
+                        if (!page.Due) return;
+                        try {
+                            let rawDate: string = typeof page.Due === 'object' && page.Due.path ? page.Due.path : page.Due as string;
+                            const dueDate = new Date(rawDate);
+                            if (isNaN(dueDate.getTime())) return;
                             
-                            // Only count scenes up to today
-                            if (dueDate > today) return;
+                            const dateKey = dueDate.toISOString().split('T')[0];
+                            overdueDates.add(dateKey);
+
+                            // Ensure overdue notes are also in notesByDate for tooltip/click
+                             if (!notesByDate.has(dateKey)) {
+                                notesByDate.set(dateKey, []);
+                            }
+                            // Avoid adding duplicates if already added by future check (unlikely but possible)
+                            if (!notesByDate.get(dateKey)?.some(note => note.file.path === page.file.path)) {
+                                notesByDate.get(dateKey)?.push(page);
+                            }
+                        } catch (error) {
+                            console.error("Error processing overdue date:", error);
+                        }
+                    });
+
+                    // Filter for pages where Status = "Complete" AND Class = "Scene"
+                    const completedScenes = pages.filter(page => {
+                        // Check if Status property exists and equals "Complete"
+                        const hasCompleteStatus = page.Status && (
+                            Array.isArray(page.Status) 
+                                ? page.Status.includes("Complete") 
+                                : page.Status === "Complete"
+                        );
                         
-                        // Format date as YYYY-MM-DD
-                        const dateKey = dueDate.toISOString().split('T')[0];
+                        // Check if Class property exists and equals "Scene"
+                        const hasSceneClass = page.Class && (
+                            Array.isArray(page.Class) 
+                                ? page.Class.includes("Scene") 
+                                : page.Class === "Scene"
+                        );
+                        
+                        return hasCompleteStatus && hasSceneClass;
+                    });
+                    
+                    // Process completed scenes and organize by due date
+                    completedScenes.forEach(page => {
+                        if (!page.Due) return;
+                        
+                        try {
+                            // Extract date from link if needed
+                            let rawDate: string = typeof page.Due === 'object' && page.Due.path 
+                                ? page.Due.path 
+                                : page.Due as string;
+                            const dueDate = new Date(rawDate);
                             
-                            // Get week for the date
-                            const weekNum = this.getWeekNumber(dueDate);
-                            const weekYear = `${dueDate.getFullYear()}-W${weekNum}`;
+                            if (isNaN(dueDate.getTime())) return;
+                                
+                                // Only count scenes up to today
+                                if (dueDate > today) return;
+                            
+                            // Format date as YYYY-MM-DD
+                            const dateKey = dueDate.toISOString().split('T')[0];
+                                
+                                // Get week for the date
+                                const weekNum = this.getWeekNumber(dueDate);
+                                const weekYear = `${dueDate.getFullYear()}-W${weekNum}`;
 
                             // Get word count from the page using the new parseWordCount function
                             const wordCount = this.parseWordCount(page["Words"] || page["Word Count"] || 0);
                         
-                        // Get revision number and publish stage
-                        const revision = typeof page.Revision === 'number' ? page.Revision : 0;
-                        let publishStage = page["Publish Stage"] || "ZERO";
-                        
-                        // If it's an array, take the first value
-                        if (Array.isArray(publishStage)) {
-                            publishStage = publishStage[0] || "ZERO";
-                        }
-                        
-                        // Convert legacy publish stage values to new format
-                        const stageMap = {
-                            "Zero": "ZERO",
-                            "First": "AUTHOR",
-                            "Editing": "HOUSE",
-                            "Press": "PRESS"
-                        };
-                        
-                        // If the publishStage is one of the legacy values, convert it
-                        if (publishStage in stageMap) {
-                            publishStage = stageMap[publishStage as keyof typeof stageMap];
-                        } else {
-                            // Normalize to uppercase for consistent checking
-                            publishStage = publishStage.toString().toUpperCase();
-                        }
-                        
-                            // Add logging BEFORE the decision is made
-                            // Use the view's helper
-                            this.debugLog(`Checking scene for ratio count:`, {
-                                scenePath: page.file.path,
-                                scenePublishStage: publishStage,
-                                sceneRevision: revision,
-                                calendarCurrentHighestStage: this.currentHighestStage
-                            });
-
-                            // --- Conditional Counting Logic --- 
-                            let shouldCountScene = false;
-                            if (this.currentHighestStage === "ZERO") {
-                                // For ZERO stage, count only if stage is ZERO and revision is 0
-                                if (publishStage === "ZERO" && revision === 0) {
-                                    shouldCountScene = true;
-                                }
-                            } else {
-                                // For AUTHOR, HOUSE, PRESS stages, count if stage matches, regardless of revision
-                                if (publishStage === this.currentHighestStage) {
-                                    shouldCountScene = true;
-                                }
+                            // Get revision number and publish stage
+                            const revision = typeof page.Revision === 'number' ? page.Revision : 0;
+                            let publishStage = page["Publish Stage"] || "ZERO";
+                            
+                            // If it's an array, take the first value
+                            if (Array.isArray(publishStage)) {
+                                publishStage = publishStage[0] || "ZERO";
                             }
+                            
+                            // Convert legacy publish stage values to new format
+                            const stageMap = {
+                                "Zero": "ZERO",
+                                "First": "AUTHOR",
+                                "Editing": "HOUSE",
+                                "Press": "PRESS"
+                            };
+                            
+                            // If the publishStage is one of the legacy values, convert it
+                            if (publishStage in stageMap) {
+                                publishStage = stageMap[publishStage as keyof typeof stageMap];
+                            } else {
+                                // Normalize to uppercase for consistent checking
+                                publishStage = publishStage.toString().toUpperCase();
+                            }
+                            
+                                // Add logging BEFORE the decision is made
+                                // Use the view's helper
+                                this.debugLog(`Checking scene for ratio count:`, {
+                                    scenePath: page.file.path,
+                                    scenePublishStage: publishStage,
+                                    sceneRevision: revision,
+                                    calendarCurrentHighestStage: this.currentHighestStage
+                                });
 
-                            if (shouldCountScene) {
-                                // Update week stats only if the scene should be counted
-                                if (!this.completedWeekStats.has(weekYear)) {
-                                    this.completedWeekStats.set(weekYear, {
-                                        sceneCount: 0,
-                                        wordCount: 0
+                                // --- Conditional Counting Logic --- 
+                                let shouldCountScene = false;
+                                if (this.currentHighestStage === "ZERO") {
+                                    // For ZERO stage, count only if stage is ZERO and revision is 0
+                                    if (publishStage === "ZERO" && revision === 0) {
+                                        shouldCountScene = true;
+                                    }
+                                } else {
+                                    // For AUTHOR, HOUSE, PRESS stages, count if stage matches, regardless of revision
+                                    if (publishStage === this.currentHighestStage) {
+                                        shouldCountScene = true;
+                                    }
+                                }
+
+                                if (shouldCountScene) {
+                                    // Update week stats only if the scene should be counted
+                                    if (!this.completedWeekStats.has(weekYear)) {
+                                        this.completedWeekStats.set(weekYear, {
+                                            sceneCount: 0,
+                                            wordCount: 0
+                                        });
+                                    }
+                                    const stats = this.completedWeekStats.get(weekYear)!;
+                                    stats.sceneCount++;
+                                    stats.wordCount += wordCount;
+
+                                    // Add detailed logging for week stats update (only when counted)
+                                    // Use the view's helper
+                                    this.debugLog(`Counted scene for week ${weekYear} (Stage: ${this.currentHighestStage}, Scene Stage: ${publishStage}, Revision: ${revision})`, {
+                                        scenePath: page.file.path,
+                                        dueDate: dateKey,
+                                        newSceneCount: stats.sceneCount,
+                                        addedWordCount: wordCount,
+                                        newTotalWordCount: stats.wordCount
+                                    });
+                                } else {
+                                    // Log skipped scenes for clarity
+                                    // Use the view's helper
+                                    this.debugLog(`Skipped scene for week ${weekYear} ratio count (Stage: ${this.currentHighestStage}, Scene Stage: ${publishStage}, Revision: ${revision})`, {
+                                        scenePath: page.file.path
                                     });
                                 }
-                                const stats = this.completedWeekStats.get(weekYear)!;
-                                stats.sceneCount++;
-                                stats.wordCount += wordCount;
+                                // --- End Conditional Counting Logic ---
 
-                                // Add detailed logging for week stats update (only when counted)
+                                // Track scenes by week and stage for week completion indicators (this is separate)
+                                if (!completedScenesByWeekAndStage.has(weekYear)) {
+                                    completedScenesByWeekAndStage.set(weekYear, new Map<string, number>());
+                                    
+                                    // Debug: Log the start of week tracking for this week
+                                    // Use the view's helper
+                                    const weekStart = new Date(dueDate);
+                                    weekStart.setDate(dueDate.getDate() - dueDate.getDay()); // Set to Sunday
+                                    const weekEnd = new Date(weekStart);
+                                    weekEnd.setDate(weekStart.getDate() + 6); // Set to Saturday
+                                    
+                                    this.debugLog(`New week tracking for ${weekYear}`, {
+                                        weekStart: weekStart.toDateString(),
+                                        weekEnd: weekEnd.toDateString(),
+                                        dueDate: dueDate.toDateString(),
+                                        dayOfWeek: dueDate.getDay()
+                                    });
+                                }
+                                
+                                const stageCount = completedScenesByWeekAndStage.get(weekYear)!;
+                                const count = stageCount.get(publishStage) || 0;
+                                stageCount.set(publishStage, count + 1);
+                                
+                                // Debug: Log the scene count update
                                 // Use the view's helper
-                                this.debugLog(`Counted scene for week ${weekYear} (Stage: ${this.currentHighestStage}, Scene Stage: ${publishStage}, Revision: ${revision})`, {
-                                    scenePath: page.file.path,
-                                    dueDate: dateKey,
-                                    newSceneCount: stats.sceneCount,
-                                    addedWordCount: wordCount,
-                                    newTotalWordCount: stats.wordCount
-                                });
-                            } else {
-                                // Log skipped scenes for clarity
-                                // Use the view's helper
-                                this.debugLog(`Skipped scene for week ${weekYear} ratio count (Stage: ${this.currentHighestStage}, Scene Stage: ${publishStage}, Revision: ${revision})`, {
+                                this.debugLog(`Adding scene for ${weekYear}`, {
+                                    date: dueDate.toDateString(),
+                                    stage: publishStage,
+                                    newCount: count + 1,
                                     scenePath: page.file.path
                                 });
-                            }
-                            // --- End Conditional Counting Logic ---
-
-                            // Track scenes by week and stage for week completion indicators (this is separate)
-                            if (!completedScenesByWeekAndStage.has(weekYear)) {
-                                completedScenesByWeekAndStage.set(weekYear, new Map<string, number>());
                                 
-                                // Debug: Log the start of week tracking for this week
-                                // Use the view's helper
-                                const weekStart = new Date(dueDate);
-                                weekStart.setDate(dueDate.getDate() - dueDate.getDay()); // Set to Sunday
-                                const weekEnd = new Date(weekStart);
-                                weekEnd.setDate(weekStart.getDate() + 6); // Set to Saturday
-                                
-                                this.debugLog(`New week tracking for ${weekYear}`, {
-                                    weekStart: weekStart.toDateString(),
-                                    weekEnd: weekEnd.toDateString(),
-                                    dueDate: dueDate.toDateString(),
-                                    dayOfWeek: dueDate.getDay()
-                                });
+                                // Rest of the original code to populate revisionMap and notesByDate
+                            if (!revisionMap.has(dateKey)) {
+                                revisionMap.set(dateKey, []);
                             }
                             
-                            const stageCount = completedScenesByWeekAndStage.get(weekYear)!;
-                            const count = stageCount.get(publishStage) || 0;
-                            stageCount.set(publishStage, count + 1);
-                            
-                            // Debug: Log the scene count update
-                            // Use the view's helper
-                            this.debugLog(`Adding scene for ${weekYear}`, {
-                                date: dueDate.toDateString(),
-                                stage: publishStage,
-                                newCount: count + 1,
-                                scenePath: page.file.path
+                            // Add to the array for this date
+                            revisionMap.get(dateKey)?.push({
+                                revision: revision,
+                                publishStage: publishStage
                             });
                             
-                            // Rest of the original code to populate revisionMap and notesByDate
-                        if (!revisionMap.has(dateKey)) {
-                            revisionMap.set(dateKey, []);
+                            // Also add to notesByDate for potential clicking/opening
+                            if (!notesByDate.has(dateKey)) {
+                                notesByDate.set(dateKey, []);
+                            }
+                            
+                            const notes = notesByDate.get(dateKey);
+                            if (notes) {
+                                notes.push(page);
+                            }
+                        } catch (error) {
+                            console.error("Error processing scene:", error);
                         }
-                        
-                        // Add to the array for this date
-                        revisionMap.get(dateKey)?.push({
-                            revision: revision,
-                            publishStage: publishStage
-                        });
-                        
-                        // Also add to notesByDate for potential clicking/opening
-                        if (!notesByDate.has(dateKey)) {
-                            notesByDate.set(dateKey, []);
-                        }
-                        
-                        const notes = notesByDate.get(dateKey);
-                        if (notes) {
-                            notes.push(page);
-                        }
-                    } catch (error) {
-                        console.error("Error processing scene:", error);
-                    }
-                });
-            }
+                    });
+                }
                 
                 // Track completed scenes by week
                 completedScenes.forEach(scene => {
@@ -1225,42 +1212,39 @@ class ManuscriptCalendarView extends ItemView {
                 
                 // Check if this date has scenes
                 const hasScenes = revisionMap.has(dateKey);
-                const isFutureTask = todoFutureDates.has(dateKey);
+                const isFutureTodo = todoFutureDates.has(dateKey);
+                const isFutureWorking = workingFutureDates.has(dateKey);
                 const isOverdue = overdueDates.has(dateKey);
                 const isPastDate = currentDate < today && !isToday;
                 
-                // Make the cell clickable if it has scenes
-                if (hasScenes || isFutureTask || isOverdue) {
+                // Make the cell clickable if it has scenes or tasks
+                if (hasScenes || isFutureTodo || isFutureWorking || isOverdue) {
                     dayCell.addClass('clickable-cell');
                     
-                    // If it's a future task, add future-todo class
-                    if (isFutureTask) {
+                    // Apply classes for future states
+                    if (isFutureTodo) {
                         dayCell.addClass('future-todo');
                     }
+                    if (isFutureWorking) {
+                        dayCell.addClass('future-working'); // Add a class if needed for other styling
+                    }
                     
-                    // Show overdue indicator only if there are no completed scenes for this date
-                    // This ensures completed scenes are shown with their proper color even if there are also overdue tasks
+                    // Overdue indicator takes priority visually
                     if (isOverdue) {
-                        // Always prioritize overdue status with a red dot
-                        const overdueDot = dayCell.createDiv({
-                            cls: 'revision-dot overdue'
-                        });
-                        hasAddedRealDot = true;
-                        
-                        // If we also have completed scenes, we still want to show them in the tooltip
-                        // but the visual indicator (dot) will be red for overdue priority
-                    }
-                    
-                    // If it's a future task and not a completed scene
-                    else if (isFutureTask && !hasScenes) {
-                        // Create indicator for future todos
-                        const futureTodoDot = dayCell.createDiv({
-                            cls: 'revision-dot future-todo-dot'
-                        });
+                        const overdueDot = dayCell.createDiv({ cls: 'revision-dot overdue' });
                         hasAddedRealDot = true;
                     }
-                    
-                    // Show completed scene indicators
+                    // If not overdue, check for future Working status
+                    else if (isFutureWorking) {
+                        const workingDot = dayCell.createDiv({ cls: 'revision-dot working' }); // Use pink dot
+                        hasAddedRealDot = true;
+                    }
+                    // If not overdue or future, check for future Todo status
+                    else if (isFutureTodo) {
+                        const futureTodoDot = dayCell.createDiv({ cls: 'revision-dot future-todo-dot' }); // Use grey dot
+                        hasAddedRealDot = true;
+                    }
+                    // If not overdue or future, show completed scene indicators
                     else if (hasScenes) {
                         const scenesForDate = revisionMap.get(dateKey);
                         
@@ -1531,7 +1515,7 @@ class ManuscriptCalendarView extends ItemView {
                             }
                             
                             // Add future todos section
-                            if (isFutureTask) {
+                            if (isFutureTodo) {
                                 const futureSection = document.createElement('div');
                                 futureSection.className = 'tooltip-section future-section';
                                 
@@ -1552,6 +1536,34 @@ class ManuscriptCalendarView extends ItemView {
                                 
                                 futureSection.appendChild(futureList);
                                 tooltipElement.appendChild(futureSection);
+                            }
+
+                            // Add Future Working section
+                            // Filter for notes that are marked as future working and not overdue
+                            const futureWorkingNotes = notesForDate.filter(page => 
+                                workingFutureDates.has(dateKey) && 
+                                !overdueDates.has(dateKey) &&
+                                page.Status && 
+                                ((typeof page.Status === 'string' && page.Status === 'Working') ||
+                                (Array.isArray(page.Status) && page.Status.includes('Working')))
+                            );
+
+                            if (futureWorkingNotes.length > 0) {
+                                const workingSection = document.createElement('div');
+                                workingSection.className = 'tooltip-section working-section'; 
+                                const workingHeading = document.createElement('h4');
+                                workingHeading.textContent = 'Working On';
+                                // Styling is handled by CSS rule: .tooltip-section.working-section h4
+                                workingSection.appendChild(workingHeading);
+                                const workingList = document.createElement('ul');
+                                futureWorkingNotes.forEach(note => {
+                                    const item = document.createElement('li');
+                                    item.classList.add('working'); // Apply pink color class
+                                    item.textContent = note.file.path.split('/').pop()?.replace('.md', '') || '';
+                                    workingList.appendChild(item);
+                                });
+                                workingSection.appendChild(workingList);
+                                tooltipElement.appendChild(workingSection);
                             }
                             
                         // Get cell position

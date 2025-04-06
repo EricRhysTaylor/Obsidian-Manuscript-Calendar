@@ -15,6 +15,7 @@ If your plugin does not need CSS, delete this file.
     --color-press: #57c176;    /* Green for press stage */
     --color-overdue: #d95353;  /* Red for overdue items */
     --color-future: #8e8e8e;   /* Grey for future todos */
+    --color-working: #FF69B4;  /* Pink for working status */
     --color-text-today: #ff9100; /* Orange for today's date */
     --ratio-svg-size: 24px; /* Increased from 20px for better visibility */
     
@@ -91,7 +92,8 @@ If your plugin does not need CSS, delete this file.
 .year-text {
     font-size: 22px !important;
     font-weight: 600;
-    color: var(--text-accent);
+    color: transparent; /* Make fill transparent */
+    -webkit-text-stroke: 1px var(--text-accent); /* Add stroke */
 }
 
 /* Create the stage badge as a proper exponent */
@@ -367,6 +369,11 @@ td.clickable-cell:hover::before {
 
 .revision-dot.stage-press {
     background-color: var(--color-press);
+}
+
+/* Add style for Working status dot */
+.revision-dot.working {
+    background-color: var(--color-working);
 }
 
 /* SPLIT DOTS */
@@ -667,6 +674,11 @@ td.clickable-cell:hover::before {
 
 .future-section li {
     color: var(--color-future);
+}
+
+/* Add style for Working items in tooltips */
+.tooltip-section li.working {
+    color: var(--color-working);
 }
 
 /* MODAL STYLING */
