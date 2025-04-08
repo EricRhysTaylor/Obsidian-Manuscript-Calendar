@@ -471,7 +471,6 @@ class ManuscriptCalendarView extends ItemView {
     async onOpen(): Promise<void> {
         try {
             this.contentEl.empty();
-            this.contentEl.addClass('manuscript-calendar-view');
             
             await this.renderCalendar();
         } catch (error) {
@@ -648,13 +647,13 @@ class ManuscriptCalendarView extends ItemView {
         // Render the calendar body
         await this.renderCalendarBody();
         
-        // Create legend container
-        const legendContainer = container.createDiv({ cls: 'legend-container' });
+        // Remove the outer legend container
+        // const legendContainer = container.createDiv({ cls: 'legend-container' });
         
-        // Create legend wrapper div
-        const legendWrapper = legendContainer.createDiv({ cls: 'legend-wrapper' });
+        // Create legend wrapper div directly on the main container
+        const legendWrapper = container.createDiv({ cls: 'legend-wrapper' });
         
-        // Create the calendar legend div
+        // Create the calendar legend div inside the wrapper
         const calendarLegend = legendWrapper.createDiv({ cls: 'calendar-legend' });
         
         // Create legend items using DOM methods instead of innerHTML
@@ -852,8 +851,8 @@ class ManuscriptCalendarView extends ItemView {
                             
                             if (isNaN(dueDate.getTime())) return;
                             
-                            // Check if the due date is in the future
-                            if (dueDate > today) {
+                            // Check if the due date is today or in the future (ignoring time)
+                            if (dueDate.setHours(0,0,0,0) >= today.setHours(0,0,0,0)) {
                                 const dateKey = dueDate.toISOString().split('T')[0];
                                 
                                 // Determine status and add to appropriate set
