@@ -453,7 +453,7 @@ td.clickable-cell:hover::before {
 }
 
 /* Add dashed border only to the current stage in the legend */
-.legend-container .legend-wrapper .calendar-legend .legend-item.current-stage {
+.legend-wrapper .calendar-legend .legend-item.current-stage {
     border: 2px dashed var(--text-accent) !important;
     background-color: var(--background-primary-alt);
     padding: 2px 4px; /* Reduced to match other items */
