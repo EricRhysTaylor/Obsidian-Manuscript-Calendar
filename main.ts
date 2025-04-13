@@ -1410,10 +1410,21 @@ class ManuscriptCalendarView extends ItemView {
                                         cls: `revision-dot ${check.cls}`
                                     });
                                     hasAddedRealDot = true;
-                                    
-                                    // For Zero stage, handle special case with revision
-                                    if (check.stage === "ZERO" && hasNonZeroRevision) {
-                                        revisionDot.addClass('has-revision');
+
+                                    // Add 'revised' class if it's a Stage Zero dot AND
+                                    // any completed Stage Zero note for this date has Revision > 0
+                                    if (check.stage === "ZERO") {
+                                        const completedStageZeroNotes = notesByDate.get(dateKey)?.filter(note =>
+                                            isNoteComplete(note) && note['Publish Stage'] === 'ZERO'
+                                        );
+                                        // Check if the array exists before calling .some()
+                                        const hasRevisedStageZero = completedStageZeroNotes ? completedStageZeroNotes.some(note => 
+                                            note.Revision && note.Revision > 0
+                                        ) : false;
+
+                                        if (hasRevisedStageZero) {
+                                            revisionDot.addClass('revised');
+                                        }
                                     }
                                 }
                             });
