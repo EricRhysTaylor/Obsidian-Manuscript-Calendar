@@ -380,10 +380,9 @@ td.clickable-cell:hover::before {
 
 /* Add style for revised Stage Zero dot */
 .revision-dot.stage-zero.revised {
-  /* Use outline for an inner stroke effect without changing layout */
-  outline: 1px solid var(--text-muted); /* A neutral, subtle color */
-  outline-offset: -1px; /* Position the outline inside the dot */
-  /* Ensure the original background color remains */
+  /* Use dashed border that's more intense than the base color */
+  border: 1px solid rgba(0, 0, 0, 1); /* Bright dashed border */
+  /* Use filter to make the background more intense */
   background-color: var(--color-zero);
 }
 

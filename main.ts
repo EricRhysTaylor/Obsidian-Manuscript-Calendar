@@ -1414,14 +1414,33 @@ class ManuscriptCalendarView extends ItemView {
                                     // Add 'revised' class if it's a Stage Zero dot AND
                                     // any completed Stage Zero note for this date has Revision > 0
                                     if (check.stage === "ZERO") {
-                                        const completedStageZeroNotes = notesByDate.get(dateKey)?.filter(note =>
-                                            isNoteComplete(note) && note['Publish Stage'] === 'ZERO'
-                                        );
-                                        // Check if the array exists before calling .some()
+                                        // Check both ZERO and Zero formats, and handle array format
+                                        const completedStageZeroNotes = notesByDate.get(dateKey)?.filter(note => {
+                                            // Check if the note is complete
+                                            const isComplete = isNoteComplete(note);
+                                            // Get the publish stage with legacy format support
+                                            let publishStage = note['Publish Stage'];
+                                            
+                                            // Handle array format
+                                            if (Array.isArray(publishStage)) {
+                                                publishStage = publishStage[0] || "";
+                                            }
+                                            
+                                            // Normalize to uppercase for checking
+                                            const normalizedStage = typeof publishStage === 'string' 
+                                                ? publishStage.toUpperCase() 
+                                                : "";
+                                            
+                                            // Check for ZERO stage
+                                            return isComplete && normalizedStage === "ZERO";
+                                        });
+                                        
+                                        // Check if any completed Stage Zero note has revision > 0
                                         const hasRevisedStageZero = completedStageZeroNotes ? completedStageZeroNotes.some(note => 
                                             note.Revision && note.Revision > 0
                                         ) : false;
-
+                                        
+                                        // Add the 'revised' class if we found a revised Stage Zero note
                                         if (hasRevisedStageZero) {
                                             revisionDot.addClass('revised');
                                         }
