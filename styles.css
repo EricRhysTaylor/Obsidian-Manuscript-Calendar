@@ -378,6 +378,15 @@ td.clickable-cell:hover::before {
     background-color: var(--color-working);
 }
 
+/* Add style for revised Stage Zero dot */
+.revision-dot.stage-zero.revised {
+  /* Use outline for an inner stroke effect without changing layout */
+  outline: 1px solid var(--text-muted); /* A neutral, subtle color */
+  outline-offset: -1px; /* Position the outline inside the dot */
+  /* Ensure the original background color remains */
+  background-color: var(--color-zero);
+}
+
 /* SPLIT DOTS */
 .revision-dot.split-revision {
     display: flex;
