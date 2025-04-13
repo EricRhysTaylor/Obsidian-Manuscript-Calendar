@@ -95,7 +95,7 @@ If your plugin does not need CSS, delete this file.
     font-size: 22px !important;
     font-weight: 600;
     color: transparent; /* Make fill transparent */
-    -webkit-text-stroke: 1px var(--text-accent); /* Add stroke */
+    -webkit-text-stroke: 1.5px var(--text-accent); /* Add stroke - increased thickness */
 }
 
 /* Create the stage badge as a proper exponent */
@@ -387,7 +387,7 @@ td.clickable-cell:hover::before {
     border-radius: 0;
     overflow: hidden;
     position: absolute;
-    bottom: 4px; /* Reduced from 6px to 4px */
+    bottom: 6px; /* Changed from 4px to 6px to match single dots */
     left: 50%;
     transform: translateX(-50%);
 }
@@ -403,6 +403,11 @@ td.clickable-cell:hover::before {
 
 .revision-part.has-revision-part {
     background-color: var(--text-muted);
+}
+
+/* Add rule for overdue part */
+.revision-part.overdue {
+    background-color: var(--color-overdue);
 }
 
 /* LEGEND STYLING */
@@ -462,8 +467,8 @@ td.clickable-cell:hover::before {
 
 /* SVG ICONS IN LEGEND */
 .legend-swatch {
-    width: 14px; /* Reduced from 16px */
-    height: 14px; /* Reduced from 16px */
+    width: 17px; /* Increased from 14px */
+    height: 17px; /* Increased from 14px */
     margin-right: 3px; /* Reduced from 6px */
     display: flex;
     justify-content: center;
@@ -473,8 +478,8 @@ td.clickable-cell:hover::before {
 }
 
 .legend-swatch svg {
-    width: 14px; /* Reduced from 16px */
-    height: 14px; /* Reduced from 16px */
+    width: 17px; /* Increased from 14px */
+    height: 17px; /* Increased from 14px */
     stroke-width: 2px;
     opacity: 1 !important;
 }
@@ -667,6 +672,16 @@ td.clickable-cell:hover::before {
 
 .future-section li {
     color: var(--color-future);
+}
+
+/* Add style for future-todo list items specifically */
+.tooltip-section li.future-todo {
+    color: var(--color-future);
+}
+
+/* Add style for overdue list items */
+.tooltip-section li.overdue {
+    color: var(--color-overdue);
 }
 
 /* Add style for Working items in tooltips */

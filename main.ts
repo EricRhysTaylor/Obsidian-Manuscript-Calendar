@@ -92,6 +92,17 @@ function createRatioSVG(numerator: number, denominator: number): SVGElement {
     return svg;
 }
 
+// *** NEW Helper Function ***
+function isNoteComplete(note: DataviewPage | undefined | null): boolean {
+    if (!note || !note.Status) return false;
+    const status = note.Status;
+    if (Array.isArray(status)) {
+        return status.some(s => typeof s === 'string' && s.trim().toLowerCase() === 'complete');
+    }
+    return typeof status === 'string' && status.trim().toLowerCase() === 'complete';
+}
+// *** End Helper Function ***
+
 export default class ManuscriptCalendarPlugin extends Plugin {
     settings: ManuscriptCalendarSettings;
     currentHighestStage: string;
@@ -647,6 +658,60 @@ class ManuscriptCalendarView extends ItemView {
         // Render the calendar body
         await this.renderCalendarBody();
         
+        // **** Calculate Stage Counts for Legend ****
+        const stageCounts = new Map<string, number>([
+            ["ZERO", 0],
+            ["AUTHOR", 0],
+            ["HOUSE", 0],
+            ["PRESS", 0]
+        ]);
+        try {
+            if (this.app.plugins.plugins.dataview) {
+                const dataviewApi = this.app.plugins.plugins.dataview.api;
+                // Get folder path from settings, same logic as in renderCalendarBody
+                const rawFolderPath = this.plugin.settings.manuscriptFolder;
+                let folderPath = (rawFolderPath === undefined || rawFolderPath === null) ? "" : rawFolderPath;
+                let pages: DataviewPage[] = [];
+
+                if (!folderPath || folderPath.trim() === "") {
+                    pages = await dataviewApi.pages();
+                } else {
+                     folderPath = folderPath.trim().replace(/^\/+|\/+$/g, '');
+                    // Using the reliable query format found earlier
+                    try {
+                       pages = await dataviewApi.pages(`folder:"${folderPath}"`);
+                    } catch (e) {
+                        this.debugLog("Error getting pages for legend count, falling back to all pages:", e);
+                        pages = await dataviewApi.pages();
+                    }
+                }
+                
+                // Filter for completed scenes and count by stage
+                pages.forEach(page => {
+                    if (isNoteComplete(page) && page["Publish Stage"]) {
+                        let stage = page["Publish Stage"];
+                         if (Array.isArray(stage)) {
+                            stage = stage[0] || "ZERO";
+                        }
+                        const stageMap = { "Zero": "ZERO", "First": "AUTHOR", "Editing": "HOUSE", "Press": "PRESS" };
+                        if (stage in stageMap) {
+                            stage = stageMap[stage as keyof typeof stageMap];
+                        } else {
+                            stage = stage.toString().toUpperCase();
+                        }
+                        
+                        if (stageCounts.has(stage)) {
+                            stageCounts.set(stage, stageCounts.get(stage)! + 1);
+                        }
+                    }
+                });
+                this.debugLog("Calculated legend stage counts:", Object.fromEntries(stageCounts));
+            }
+        } catch (e) {
+            console.error("Error calculating stage counts for legend:", e);
+        }
+        // **** End Calculate Stage Counts ****
+        
         // Remove the outer legend container
         // const legendContainer = container.createDiv({ cls: 'legend-container' });
         
@@ -678,7 +743,12 @@ class ManuscriptCalendarView extends ItemView {
             // Use Obsidian's setIcon function
             setIcon(legendSwatch, item.icon);
             
-            const legendLabel = legendItem.createSpan({ cls: 'legend-label', text: item.label });
+            // Determine the text: count if > 0, else label
+            const stageKey = item.label.toUpperCase(); // e.g., "ZERO", "AUTHOR"
+            const count = stageCounts.get(stageKey) ?? 0;
+            const labelText = count > 0 ? count.toString() : item.label;
+
+            const legendLabel = legendItem.createSpan({ cls: 'legend-label', text: labelText });
         });
     }
 
@@ -874,24 +944,25 @@ class ManuscriptCalendarView extends ItemView {
                         }
                     });
 
+                    // **** Restore Overdue Scene Identification ****
                     // Find overdue items - not complete but due date is in the past
                     const overduePages = pages.filter(page => {
                         const isNotComplete = page.Status && (
                             (Array.isArray(page.Status) && !page.Status.includes("Complete")) ||
                             (typeof page.Status === 'string' && page.Status !== "Complete")
                         );
-                        
+
                         const hasSceneClass = page.Class && (
-                            Array.isArray(page.Class) 
-                                ? page.Class.includes("Scene") 
+                            Array.isArray(page.Class)
+                                ? page.Class.includes("Scene")
                                 : page.Class === "Scene"
                         );
-                        
+
                         let isDueDateInPast = false;
                         if (page.Due) {
                             try {
-                                let rawDueDate: string = typeof page.Due === 'object' && page.Due.path 
-                                    ? page.Due.path 
+                                let rawDueDate: string = typeof page.Due === 'object' && page.Due.path
+                                    ? page.Due.path
                                     : page.Due as string;
                                 const dueDate = new Date(rawDueDate);
                                 // Check if date is valid and strictly before today (ignoring time)
@@ -900,20 +971,20 @@ class ManuscriptCalendarView extends ItemView {
                                 isDueDateInPast = false;
                             }
                         }
-                        
+
                         return isNotComplete && hasSceneClass && isDueDateInPast;
                     });
 
-                    // Process overdue pages
+                    // Process overdue pages to populate overdueDates and notesByDate
                     overduePages.forEach(page => {
                         if (!page.Due) return;
                         try {
                             let rawDate: string = typeof page.Due === 'object' && page.Due.path ? page.Due.path : page.Due as string;
                             const dueDate = new Date(rawDate);
                             if (isNaN(dueDate.getTime())) return;
-                            
+
                             const dateKey = dueDate.toISOString().split('T')[0];
-                            overdueDates.add(dateKey);
+                            overdueDates.add(dateKey); // Add to set for quick checking
 
                             // Ensure overdue notes are also in notesByDate for tooltip/click
                              if (!notesByDate.has(dateKey)) {
@@ -924,9 +995,10 @@ class ManuscriptCalendarView extends ItemView {
                                 notesByDate.get(dateKey)?.push(page);
                             }
                         } catch (error) {
-                            console.error("Error processing overdue date:", error);
+                            console.error("Error processing overdue date for identification:", error);
                         }
                     });
+                    // **** End Restore Overdue Scene Identification ****
 
                     // Filter for pages where Status = "Complete" AND Class = "Scene"
                     const completedScenes = pages.filter(page => {
@@ -997,60 +1069,54 @@ class ManuscriptCalendarView extends ItemView {
                                 // Normalize to uppercase for consistent checking
                                 publishStage = publishStage.toString().toUpperCase();
                             }
-                            
-                                // Add logging BEFORE the decision is made
+
+                            // Remove the stage-specific check for counting towards the ratio.
+                            // Now, ANY completed scene (Class=Scene, Status=Complete, Due<=today)
+                            // meeting the filter criteria will contribute to the week's ratio stats.
+                            const shouldCountScene = true; // Always count if it reached this point
+
+                            // Add logging BEFORE the decision is made
+                            // Use the view's helper
+                            this.debugLog(`Checking scene for ratio count (Now always true if Complete/Scene/PastDue):`, {
+                                scenePath: page.file.path,
+                                scenePublishStage: publishStage,
+                                sceneRevision: revision,
+                                calendarCurrentHighestStage: this.currentHighestStage // Logged for info, but not used in count decision
+                            });
+
+                            if (shouldCountScene) {
+                                // Update week stats only if the scene should be counted
+                                if (!this.completedWeekStats.has(weekYear)) {
+                                    this.completedWeekStats.set(weekYear, {
+                                        sceneCount: 0,
+                                        wordCount: 0
+                                    });
+                                }
+                                const stats = this.completedWeekStats.get(weekYear)!;
+                                stats.sceneCount++;
+                                stats.wordCount += wordCount;
+
+                                // Add detailed logging for week stats update (only when counted)
                                 // Use the view's helper
-                                this.debugLog(`Checking scene for ratio count:`, {
+                                this.debugLog(`Counted scene for week ${weekYear} (Stage: ${this.currentHighestStage}, Scene Stage: ${publishStage}, Revision: ${revision})`, {
                                     scenePath: page.file.path,
-                                    scenePublishStage: publishStage,
-                                    sceneRevision: revision,
-                                    calendarCurrentHighestStage: this.currentHighestStage
+                                    dueDate: dateKey,
+                                    newSceneCount: stats.sceneCount,
+                                    addedWordCount: wordCount,
+                                    newTotalWordCount: stats.wordCount
                                 });
+                            } else {
+                                // This 'else' block will now likely never be reached for completedScenes,
+                                // unless the initial filtering changes. Keep for potential future debug.
+                                // Log skipped scenes for clarity
+                                // Use the view's helper
+                                this.debugLog(`Skipped scene for week ${weekYear} ratio count (Should not happen for completedScenes now)`, {
+                                    scenePath: page.file.path
+                                });
+                            }
+                            // --- End Modified Counting Logic ---
 
-                                // --- Conditional Counting Logic --- 
-                                let shouldCountScene = false;
-                                if (this.currentHighestStage === "ZERO") {
-                                    // For ZERO stage, count only if stage is ZERO and revision is 0
-                                    if (publishStage === "ZERO" && revision === 0) {
-                                        shouldCountScene = true;
-                                    }
-                                } else {
-                                    // For AUTHOR, HOUSE, PRESS stages, count if stage matches, regardless of revision
-                                    if (publishStage === this.currentHighestStage) {
-                                        shouldCountScene = true;
-                                    }
-                                }
-
-                                if (shouldCountScene) {
-                                    // Update week stats only if the scene should be counted
-                                    if (!this.completedWeekStats.has(weekYear)) {
-                                        this.completedWeekStats.set(weekYear, {
-                                            sceneCount: 0,
-                                            wordCount: 0
-                                        });
-                                    }
-                                    const stats = this.completedWeekStats.get(weekYear)!;
-                                    stats.sceneCount++;
-                                    stats.wordCount += wordCount;
-
-                                    // Add detailed logging for week stats update (only when counted)
-                                    // Use the view's helper
-                                    this.debugLog(`Counted scene for week ${weekYear} (Stage: ${this.currentHighestStage}, Scene Stage: ${publishStage}, Revision: ${revision})`, {
-                                        scenePath: page.file.path,
-                                        dueDate: dateKey,
-                                        newSceneCount: stats.sceneCount,
-                                        addedWordCount: wordCount,
-                                        newTotalWordCount: stats.wordCount
-                                    });
-                                } else {
-                                    // Log skipped scenes for clarity
-                                    // Use the view's helper
-                                    this.debugLog(`Skipped scene for week ${weekYear} ratio count (Stage: ${this.currentHighestStage}, Scene Stage: ${publishStage}, Revision: ${revision})`, {
-                                        scenePath: page.file.path
-                                    });
-                                }
-                                // --- End Conditional Counting Logic ---
-
+                            // Track scenes by week and stage for week completion indicators (this is separate)
                                 // Track scenes by week and stage for week completion indicators (this is separate)
                                 if (!completedScenesByWeekAndStage.has(weekYear)) {
                                     completedScenesByWeekAndStage.set(weekYear, new Map<string, number>());
@@ -1154,7 +1220,7 @@ class ManuscriptCalendarView extends ItemView {
                 text: weekNum.toString()
             });
 
-            if (weekStats && weekStats.sceneCount >= 2) {
+            if (weekStats && weekStats.sceneCount >= 1) {
                 // Add class to hide the week number span via CSS
                 weekNumSpan.classList.add('hidden-week-number');
 
@@ -1230,8 +1296,52 @@ class ManuscriptCalendarView extends ItemView {
                     
                     // Overdue indicator takes priority visually
                     if (isOverdue) {
-                        const overdueDot = dayCell.createDiv({ cls: 'revision-dot overdue' });
-                        hasAddedRealDot = true;
+                        // Check if there's ALSO a completed scene for this day
+                        const hasCompletedScene = notesByDate.get(dateKey)?.some(note => 
+                            isNoteComplete(note) // Use helper function
+                        );
+
+                        if (hasCompletedScene) {
+                            // *** Add Debugging Here ***
+                            this.debugLog(`Creating SPLIT dot for ${dateKey}. isOverdue: ${isOverdue}, hasCompletedScene: ${hasCompletedScene}`);
+                            // *** End Debugging ***
+                            // Create SPLIT dot: Overdue + Completed Stage
+                            hasAddedRealDot = true;
+                            const splitDot = dayCell.createDiv({ cls: 'revision-dot split-revision' });
+                            
+                            // Find the first completed scene to get its stage for the color
+                            const completedNote = notesByDate.get(dateKey)?.find(note => 
+                                isNoteComplete(note) // Use helper function
+                            );
+
+                            let stageCls = 'stage-zero'; // Default
+                            if (completedNote && completedNote["Publish Stage"]) {
+                                 let publishStage = completedNote["Publish Stage"];
+                                 if (Array.isArray(publishStage)) {
+                                    publishStage = publishStage[0] || "ZERO";
+                                }
+                                const stageMap = { "Zero": "ZERO", "First": "AUTHOR", "Editing": "HOUSE", "Press": "PRESS" };
+                                if (publishStage in stageMap) {
+                                    publishStage = stageMap[publishStage as keyof typeof stageMap];
+                                } else {
+                                    publishStage = publishStage.toString().toUpperCase();
+                                }
+                                stageCls = `stage-${publishStage.toLowerCase()}`;
+                            }
+                            
+                            // First half: Completed scene stage color
+                            splitDot.createDiv({ cls: `revision-part ${stageCls}` });
+                            // Second half: Overdue color
+                            splitDot.createDiv({ cls: 'revision-part overdue' });
+
+                        } else {
+                            // *** Add Debugging Here ***
+                            this.debugLog(`Creating REGULAR overdue dot for ${dateKey}. isOverdue: ${isOverdue}, hasCompletedScene: ${hasCompletedScene}`);
+                             // *** End Debugging ***
+                           // Create REGULAR overdue dot (only overdue, no completed)
+                            hasAddedRealDot = true;
+                            const overdueDot = dayCell.createDiv({ cls: 'revision-dot overdue' });
+                        }
                     }
                     // If not overdue, check for future Working status
                     else if (isFutureWorking) {
@@ -1341,72 +1451,77 @@ class ManuscriptCalendarView extends ItemView {
                         // Use the stored date key from the dataset
                         const cellDateKey = dayCell.dataset.date || dateKey;
                         const notesForDate = notesByDate.get(cellDateKey) || [];
-                        
+
                         if (notesForDate.length === 0) {
                             return;
                         }
-                        
-                        // Get all open leaves (tabs) in the workspace
+
+                        // 1. Get open files
                         const openLeaves = this.app.workspace.getLeavesOfType('markdown');
                         const openFiles = new Map<string, WorkspaceLeaf>();
-                        
-                        // Create a map of already open files
                         openLeaves.forEach(leaf => {
-                            // Get the file path if available
                             const viewState = leaf.getViewState();
                             const filePath = viewState.state?.file;
-                            
                             if (filePath && typeof filePath === 'string') {
                                 openFiles.set(filePath, leaf);
                             }
                         });
-                        
-                        // Track if we've activated any existing tab
-                        let hasActivatedExistingTab = false;
-                        
-                        // First, check if any of the notes for this date are already open
-                        for (const note of notesForDate) {
-                            const filePath = note.file.path;
-                            
-                            // If this file is already open in a tab, reveal that tab
-                            if (openFiles.has(filePath)) {
-                                const existingLeaf = openFiles.get(filePath);
-                                if (existingLeaf) {
-                                    this.app.workspace.revealLeaf(existingLeaf);
-                                    hasActivatedExistingTab = true;
-                                    break; // Stop after finding and activating the first open tab
-                                }
+
+                        // 2. Determine day type and define target notes
+                        const isOverdueDay = overdueDates.has(cellDateKey);
+                        const hasCompletedSceneOnDay = notesForDate.some(note => isNoteComplete(note));
+                        const isSplitDotDay = isOverdueDay && hasCompletedSceneOnDay;
+
+                        let targetNotes: DataviewPage[];
+                        if (isSplitDotDay) {
+                            this.debugLog(`Split dot day click: Targeting only overdue scenes for ${cellDateKey}`);
+                            targetNotes = notesForDate.filter(note => !isNoteComplete(note));
+                        } else {
+                            this.debugLog(`Normal day click: Targeting all scenes for ${cellDateKey}`);
+                            targetNotes = notesForDate;
+                        }
+
+                        // 3. Partition target notes into open and closed
+                        const openTargetNotes = targetNotes.filter(note => openFiles.has(note.file.path));
+                        const closedTargetNotes = targetNotes.filter(note => !openFiles.has(note.file.path));
+
+                        this.debugLog(`Target Notes Partition for ${cellDateKey}:`, {
+                            totalTargets: targetNotes.length,
+                            openTargets: openTargetNotes.map(n => n.file.path),
+                            closedTargets: closedTargetNotes.map(n => n.file.path)
+                        });
+
+                        // 4. Activate existing tab (if any)
+                        let didActivateTab = false;
+                        if (openTargetNotes.length > 0) {
+                            const firstOpenNotePath = openTargetNotes[0].file.path;
+                            const existingLeaf = openFiles.get(firstOpenNotePath);
+                            if (existingLeaf) {
+                                this.app.workspace.revealLeaf(existingLeaf);
+                                didActivateTab = true;
+                                this.debugLog(`Activated existing tab for ${firstOpenNotePath}`);
                             }
                         }
-                        
-                        // If we didn't activate any existing tab, open the notes in tabs
-                        if (!hasActivatedExistingTab) {
-                            // Track which files we've processed to avoid duplicates
-                            const processedFiles = new Set<string>();
-                            
-                            notesForDate.forEach((note, index) => {
-                                const filePath = note.file.path;
-                                
-                                // Skip if already processed or already open
-                                if (processedFiles.has(filePath) || openFiles.has(filePath)) {
-                                    return;
-                                }
-                                
-                                // Mark as processed
-                                processedFiles.add(filePath);
-                                
+
+                        // 5. Open closed tabs
+                        const processedFiles = new Set<string>(); // Avoid accidental duplicates if logic errors
+                        closedTargetNotes.forEach((note, index) => {
+                            const filePath = note.file.path;
+                            if (processedFiles.has(filePath)) return; // Safety check
+                            processedFiles.add(filePath);
+
                             const file = this.app.vault.getAbstractFileByPath(filePath);
                             if (file && file instanceof TFile) {
-                                    // Always open in new tab
-                                    this.app.workspace.openLinkText(
-                                        file.path,
-                                        "",
-                                        true, // Open in new tab
-                                        { active: index === 0 } // Only activate the first tab
-                                    );
-                                }
-                            });
-                        }
+                                const shouldActivate = !didActivateTab && index === 0;
+                                this.debugLog(`Opening closed note: ${filePath}, Activate: ${shouldActivate}`);
+                                this.app.workspace.openLinkText(
+                                    file.path,
+                                    "",
+                                    true, // Open in new tab
+                                    { active: shouldActivate } 
+                                );
+                            }
+                        });
                     });
                     
                     // Add mouse enter/leave handlers for tooltip
@@ -1469,6 +1584,7 @@ class ManuscriptCalendarView extends ItemView {
                                 const overdueList = document.createElement('ul');
                                 overdueNotes.forEach(note => {
                                     const item = document.createElement('li');
+                                    item.classList.add('overdue'); // Add overdue class
                                     item.textContent = note.file.path.split('/').pop()?.replace('.md', '') || '';
                                     overdueList.appendChild(item);
                                 });
@@ -1529,6 +1645,7 @@ class ManuscriptCalendarView extends ItemView {
                                     (Array.isArray(page.Status) && page.Status.includes('Todo')))
                                 ).forEach(note => {
                                     const item = document.createElement('li');
+                                    item.classList.add('future-todo'); // Add future-todo class
                                     item.textContent = note.file.path.split('/').pop()?.replace('.md', '') || '';
                                     futureList.appendChild(item);
                                 });
