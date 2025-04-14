@@ -19,6 +19,12 @@ const filesToCopy = ['main.js', 'manifest.json', 'styles.css', 'README.md', 'scr
  * Copy plugin files to all target directories
  */
 export function copyBuildFiles() {
+  // Prevent execution in CI environments (like GitHub Actions)
+  if (process.env.CI) {
+    console.log("Skipping local vault copy in CI environment.");
+    return;
+  }
+
   let totalFilesCopied = 0;
   let totalErrors = 0;
 
