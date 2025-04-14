@@ -247,15 +247,15 @@ export function checkCodeQuality() {
     // Exit with error code to fail the build
     return false;
   } else {
-    console.log('✅ No Obsidian.md guideline violations detected.');
+    console.log('✅ Code quality check passed!');
     return true;
   }
 }
 
-// Run the check if this file is executed directly
+// Optional: Allow running this check independently
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const result = checkCodeQuality();
-  if (!result) {
+  const passed = checkCodeQuality();
+  if (!passed) {
     process.exit(1);
   }
 } 

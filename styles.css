@@ -56,7 +56,6 @@ If your plugin does not need CSS, delete this file.
 
 .month-selector {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     gap: 8px;
     flex: 1;
@@ -207,7 +206,7 @@ If your plugin does not need CSS, delete this file.
 
 .nav-buttons {
     display: flex;
-    gap: 1px; /* Reduced gap for closer buttons */
+    gap: 0px; /* Remove gap for closer buttons */
     align-items: center;
     margin-left: auto;
 }

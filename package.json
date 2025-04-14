@@ -5,9 +5,8 @@
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"build": "node code-quality-check.mjs && node esbuild.config.mjs production",
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
-		"copy": "node copy-build.mjs",
 		"lint": "node code-quality-check.mjs",
 		"prepare": "husky install"
 	},
