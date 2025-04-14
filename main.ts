@@ -541,37 +541,61 @@ class ManuscriptCalendarView extends ItemView {
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
                            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             
-            // Clear the text content and create elements
+            // Clear the text content 
             monthDisplay.empty();
+            
+            // Create a container for month/year and stage info
+            const headerContainer = document.createElement('div');
+            headerContainer.className = 'month-year-stage-container';
+            monthDisplay.appendChild(headerContainer);
             
             // Create month text
             const monthText = document.createElement('span');
             monthText.textContent = months[this.currentDate.getMonth()];
             monthText.className = 'month-text';
-            monthDisplay.appendChild(monthText);
+            headerContainer.appendChild(monthText);
             
             // Add space between month and year
-            monthDisplay.appendChild(document.createTextNode(' '));
+            headerContainer.appendChild(document.createTextNode(' '));
             
-            // Create year text
+            // Create year text - only show last 2 digits
             const yearText = document.createElement('span');
-            yearText.textContent = this.currentDate.getFullYear().toString();
+            const fullYear = this.currentDate.getFullYear().toString();
+            yearText.textContent = fullYear.substring(fullYear.length - 2); // Only last 2 digits
             yearText.className = 'year-text';
-            monthDisplay.appendChild(yearText);
+            headerContainer.appendChild(yearText);
             
             // Default to ZERO stage
             let highestStage = "ZERO";
+            
+            // **** Calculate Stage Counts ****
+            const stageCounts = new Map<string, number>([
+                ["ZERO", 0],
+                ["AUTHOR", 0],
+                ["HOUSE", 0],
+                ["PRESS", 0]
+            ]);
             
             try {
                 if (this.app.plugins.plugins.dataview) {
                     const dataviewApi = this.app.plugins.plugins.dataview.api;
                     let pages: any[] = [];
                     
+                    // Get folder path from settings, same logic as in renderCalendarBody
+                    const rawFolderPath = this.plugin.settings.manuscriptFolder;
+                    let folderPath = (rawFolderPath === undefined || rawFolderPath === null) ? "" : rawFolderPath;
+                    
                     // Get all pages with dataview
                     try {
-                        pages = await dataviewApi.pages();
+                        if (!folderPath || folderPath.trim() === "") {
+                            pages = await dataviewApi.pages();
+                        } else {
+                            folderPath = folderPath.trim().replace(/^\/+|\/+$/g, '');
+                            pages = await dataviewApi.pages(`folder:"${folderPath}"`);
+                        }
                     } catch (e) {
                         console.error("Error getting pages:", e);
+                        pages = await dataviewApi.pages(); // Fallback to all pages
                     }
                     
                     // Define stages in order of advancement (lowest to highest)
@@ -586,8 +610,9 @@ class ManuscriptCalendarView extends ItemView {
                     // Current highest stage index
                     let highestStageIndex = 0;
                     
-                    // Check each page for Publish Stage
+                    // Check each page for Publish Stage and count completed scenes by stage
                     pages.forEach(page => {
+                        // Handle Publish Stage determination
                         if (page["Publish Stage"]) {
                             let pageStage = String(page["Publish Stage"]).toUpperCase();
                             
@@ -601,23 +626,74 @@ class ManuscriptCalendarView extends ItemView {
                                 highestStageIndex = stageIndex;
                                 highestStage = stages[highestStageIndex];
                             }
+                            
+                            // Count completed scenes by stage
+                            if (isNoteComplete(page)) {
+                                if (stageCounts.has(pageStage)) {
+                                    stageCounts.set(pageStage, stageCounts.get(pageStage)! + 1);
+                                }
+                            }
                         }
                     });
                     
                     // Store the highest stage for use in renderCalendarBody
                     this.currentHighestStage = highestStage;
+                    this.debugLog("Current highest stage:", highestStage);
+                    this.debugLog("Completed scene counts:", Object.fromEntries(stageCounts));
                 }
             } catch (e) {
                 console.error("Error determining highest publish stage:", e);
                 this.currentHighestStage = "ZERO"; // Default fallback
             }
             
-            // Create and add the stage indicator element as an exponent
+            // Add the stage icon based on current stage
+            const iconMap = {
+                "ZERO": "circle-slash",
+                "AUTHOR": "smile",
+                "HOUSE": "landmark",
+                "PRESS": "printer"
+            };
+            
+            // Create the table-like structure for the stage info
+            const stageTable = document.createElement('div');
+            stageTable.className = 'stage-table';
+            
+            // Column 1: Icon
+            const iconColumn = document.createElement('div');
+            iconColumn.className = 'stage-icon-column';
+            stageTable.appendChild(iconColumn);
+            
+            // Create the icon container and add to icon column
+            const stageIconContainer = document.createElement('span');
+            stageIconContainer.className = 'stage-icon';
+            stageIconContainer.classList.add(`stage-${this.currentHighestStage.toLowerCase()}`);
+            setIcon(stageIconContainer, iconMap[this.currentHighestStage as keyof typeof iconMap]);
+            iconColumn.appendChild(stageIconContainer);
+            
+            // Column 2: Stage text and count
+            const textColumn = document.createElement('div');
+            textColumn.className = 'stage-text-column';
+            stageTable.appendChild(textColumn);
+            
+            // Row 1: Stage indicator
             const stageIndicator = document.createElement('span');
             stageIndicator.className = 'stage-indicator';
             stageIndicator.textContent = this.currentHighestStage;
             stageIndicator.classList.add(`stage-${this.currentHighestStage.toLowerCase()}`);
-            monthDisplay.appendChild(stageIndicator);
+            textColumn.appendChild(stageIndicator);
+            
+            // Row 2: Count (only if > 0)
+            const currentStageCount = stageCounts.get(this.currentHighestStage) || 0;
+            if (currentStageCount > 0) {
+                const stageCountElement = document.createElement('span');
+                stageCountElement.className = 'stage-count';
+                stageCountElement.classList.add(`stage-${this.currentHighestStage.toLowerCase()}`);
+                stageCountElement.textContent = currentStageCount.toString();
+                textColumn.appendChild(stageCountElement);
+            }
+            
+            // Add the stage table to the header container
+            headerContainer.appendChild(stageTable);
         };
         
         await updateMonthDisplay();
@@ -657,99 +733,6 @@ class ManuscriptCalendarView extends ItemView {
         
         // Render the calendar body
         await this.renderCalendarBody();
-        
-        // **** Calculate Stage Counts for Legend ****
-        const stageCounts = new Map<string, number>([
-            ["ZERO", 0],
-            ["AUTHOR", 0],
-            ["HOUSE", 0],
-            ["PRESS", 0]
-        ]);
-        try {
-            if (this.app.plugins.plugins.dataview) {
-                const dataviewApi = this.app.plugins.plugins.dataview.api;
-                // Get folder path from settings, same logic as in renderCalendarBody
-                const rawFolderPath = this.plugin.settings.manuscriptFolder;
-                let folderPath = (rawFolderPath === undefined || rawFolderPath === null) ? "" : rawFolderPath;
-                let pages: DataviewPage[] = [];
-
-                if (!folderPath || folderPath.trim() === "") {
-                    pages = await dataviewApi.pages();
-                } else {
-                     folderPath = folderPath.trim().replace(/^\/+|\/+$/g, '');
-                    // Using the reliable query format found earlier
-                    try {
-                       pages = await dataviewApi.pages(`folder:"${folderPath}"`);
-                    } catch (e) {
-                        this.debugLog("Error getting pages for legend count, falling back to all pages:", e);
-                        pages = await dataviewApi.pages();
-                    }
-                }
-                
-                // Filter for completed scenes and count by stage
-                pages.forEach(page => {
-                    if (isNoteComplete(page) && page["Publish Stage"]) {
-                        let stage = page["Publish Stage"];
-                         if (Array.isArray(stage)) {
-                            stage = stage[0] || "ZERO";
-                        }
-                        const stageMap = { "Zero": "ZERO", "First": "AUTHOR", "Editing": "HOUSE", "Press": "PRESS" };
-                        if (stage in stageMap) {
-                            stage = stageMap[stage as keyof typeof stageMap];
-                        } else {
-                            stage = stage.toString().toUpperCase();
-                        }
-                        
-                        if (stageCounts.has(stage)) {
-                            stageCounts.set(stage, stageCounts.get(stage)! + 1);
-                        }
-                    }
-                });
-                this.debugLog("Calculated legend stage counts:", Object.fromEntries(stageCounts));
-            }
-        } catch (e) {
-            console.error("Error calculating stage counts for legend:", e);
-        }
-        // **** End Calculate Stage Counts ****
-        
-        // Remove the outer legend container
-        // const legendContainer = container.createDiv({ cls: 'legend-container' });
-        
-        // Create legend wrapper div directly on the main container
-        const legendWrapper = container.createDiv({ cls: 'legend-wrapper' });
-        
-        // Create the calendar legend div inside the wrapper
-        const calendarLegend = legendWrapper.createDiv({ cls: 'calendar-legend' });
-        
-        // Create legend items using DOM methods instead of innerHTML
-        const legendItems = [
-            { cls: 'stage-zero', label: 'ZERO', icon: 'circle-slash' },
-            { cls: 'stage-author', label: 'AUTHOR', icon: 'smile' },
-            { cls: 'stage-house', label: 'HOUSE', icon: 'landmark' },
-            { cls: 'stage-press', label: 'PRESS', icon: 'printer' }
-        ];
-        
-        legendItems.forEach(item => {
-            const legendItem = calendarLegend.createDiv({ cls: 'legend-item' });
-            
-            // Add current-stage class if this is the current highest stage
-            if (item.cls === `stage-${this.currentHighestStage.toLowerCase()}`) {
-                legendItem.classList.add('current-stage');
-            }
-            
-            // Create the swatch div with specific stage class
-            const legendSwatch = legendItem.createDiv({ cls: `legend-swatch ${item.cls}` });
-            
-            // Use Obsidian's setIcon function
-            setIcon(legendSwatch, item.icon);
-            
-            // Determine the text: count if > 0, else label
-            const stageKey = item.label.toUpperCase(); // e.g., "ZERO", "AUTHOR"
-            const count = stageCounts.get(stageKey) ?? 0;
-            const labelText = count > 0 ? count.toString() : item.label;
-
-            const legendLabel = legendItem.createSpan({ cls: 'legend-label', text: labelText });
-        });
     }
 
     // Helper function to parse word count from metadata

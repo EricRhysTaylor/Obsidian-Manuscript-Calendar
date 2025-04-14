@@ -61,7 +61,7 @@ If your plugin does not need CSS, delete this file.
     gap: 8px;
     flex: 1;
     position: relative;
-    margin-right: 0; /* Remove extra space */
+    margin-right: 0;
     margin-bottom: 6px;
 }
 
@@ -96,19 +96,96 @@ If your plugin does not need CSS, delete this file.
     font-weight: 600;
     color: transparent; /* Make fill transparent */
     -webkit-text-stroke: 1.5px var(--text-accent); /* Add stroke - increased thickness */
+    vertical-align: baseline;
 }
 
-/* Create the stage badge as a proper exponent */
-.month-selector span .stage-indicator {
+/* New header layout */
+.month-year-stage-container {
+    display: flex;
+    align-items: center;
+    height: 30px;
+}
+
+/* Stage table layout */
+.stage-table {
+    display: inline-flex;
+    align-items: center;
+    height: 30px;
+}
+
+/* Stage text column */
+.stage-text-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    margin-left: -2px; /* Negative margin to reduce space between icon and text */
+    height: 100%;
+}
+
+/* Stage icon column */
+.stage-icon-column {
+    display: flex;
+    align-items: center;
+    margin-right: 5; /* Explicitly zero */
+    margin-left: 10px; /* Add spacing here instead */
+    height: 100%;
+}
+
+/* Stage icon */
+.stage-icon {
+    height: 26px;
+    width: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative; /* for next line. top: 1px; used to push up or down the icon */
+    
+}
+
+/* Force SVG icon size */
+.stage-icon svg {
+    width: 26px !important; /* Override SVG attribute */
+    height: 26px !important; /* Override SVG attribute */
+}
+
+/* Stage indicator text */
+.stage-indicator {
     font-size: 9px;
-    font-weight: 300;
+    font-weight: 400;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    position: relative;
-    top: -1.0em;
-    margin-left: -0.2em; /* Negative margin to reduce space */
-    display: inline-block;
     line-height: 1;
+}
+
+/* Stage count below the stage indicator */
+.stage-count {
+    font-size: 8px;
+    text-align: center;
+    line-height: 1;
+    display: block;
+    margin-top: 3px;
+}
+
+/* Stage colors using icon SVGs */
+.stage-zero .stage-icon svg,
+.stage-icon.stage-zero svg {
+    color: var(--color-zero) !important;
+}
+
+.stage-author .stage-icon svg,
+.stage-icon.stage-author svg {
+    color: var(--color-author) !important;
+}
+
+.stage-house .stage-icon svg,
+.stage-icon.stage-house svg {
+    color: var(--color-house) !important;
+}
+
+.stage-press .stage-icon svg,
+.stage-icon.stage-press svg {
+    color: var(--color-press) !important;
 }
 
 /* Stage colors using classes */
@@ -418,7 +495,8 @@ td.clickable-cell:hover::before {
     background-color: var(--color-overdue);
 }
 
-/* LEGEND STYLING */
+/* LEGEND STYLING - COMMENTED OUT AS LEGEND MOVED TO HEADER */
+/*
 .calendar-legend-separator {
     height: 1px;
     background-color: var(--background-modifier-border);
@@ -427,7 +505,7 @@ td.clickable-cell:hover::before {
 
 .legend-wrapper {
     display: flex;
-    justify-content: center; /* Center the legend within the wrapper */
+    justify-content: center;
 }
 
 .calendar-legend {
@@ -438,14 +516,13 @@ td.clickable-cell:hover::before {
     padding: 4px 0px;
     background-color: var(--background-secondary);
     border-radius: 6px;
-    transform-origin: center top; /* Keep the legend centered */
+    transform-origin: center top;
     transform: scale(0.8);
-    margin: 0 auto; /* Center the legend horizontally */
-    gap: 2px; /* Reduced from 8px for tighter spacing */
-    border: none; /* Remove any border from the entire legend */
+    margin: 0 auto;
+    gap: 2px;
+    border: none;
 }
 
-/* Responsive legend styles */
 @media (max-width: 600px) {
     .calendar-legend {
         flex-wrap: wrap;
@@ -459,25 +536,23 @@ td.clickable-cell:hover::before {
 .legend-item {
     display: flex;
     align-items: center;
-    padding: 2px 4px; /* Reduced from 3px 8px */
-    margin: 1px 2px; /* Reduced from 2px 3px */
-    border: 1px solid transparent; /* Invisible border for consistent sizing */
+    padding: 2px 4px;
+    margin: 1px 2px;
+    border: 1px solid transparent;
     border-radius: 4px;
 }
 
-/* Add dashed border only to the current stage in the legend */
 .legend-wrapper .calendar-legend .legend-item.current-stage {
     border: 2px dashed var(--text-accent) !important;
     background-color: var(--background-primary-alt);
-    padding: 2px 4px; /* Reduced to match other items */
+    padding: 2px 4px;
     box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
-/* SVG ICONS IN LEGEND */
 .legend-swatch {
-    width: 17px; /* Increased from 14px */
-    height: 17px; /* Increased from 14px */
-    margin-right: 3px; /* Reduced from 6px */
+    width: 17px;
+    height: 17px;
+    margin-right: 3px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -486,13 +561,12 @@ td.clickable-cell:hover::before {
 }
 
 .legend-swatch svg {
-    width: 17px; /* Increased from 14px */
-    height: 17px; /* Increased from 14px */
+    width: 17px;
+    height: 17px;
     stroke-width: 2px;
     opacity: 1 !important;
 }
 
-/* STAGE ZERO - CIRCLE SLASH */
 .legend-swatch.stage-zero::after {
     display: none;
 }
@@ -501,7 +575,6 @@ td.clickable-cell:hover::before {
     color: var(--color-zero) !important;
 }
 
-/* AUTHOR STAGE */
 .legend-swatch.stage-author::after {
     display: none;
 }
@@ -510,7 +583,6 @@ td.clickable-cell:hover::before {
     color: var(--color-author) !important;
 }
 
-/* HOUSE STAGE */
 .legend-swatch.stage-house::after {
     display: none;
 }
@@ -519,7 +591,6 @@ td.clickable-cell:hover::before {
     color: var(--color-house) !important;
 }
 
-/* PRESS STAGE */
 .legend-swatch.stage-press::after {
     display: none;
 }
@@ -528,7 +599,6 @@ td.clickable-cell:hover::before {
     color: var(--color-press) !important;
 }
 
-/* LEGEND LABELS */
 .legend-label {
     font-size: 10px;
     text-transform: uppercase;
@@ -539,6 +609,7 @@ td.clickable-cell:hover::before {
     font-weight: 200;
     color: var(--text-normal);
 }
+*/
 
 /* SVG ICONS STYLING scoped to view content */
 .view-content button svg {
