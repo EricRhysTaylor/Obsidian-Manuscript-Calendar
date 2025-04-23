@@ -155,15 +155,20 @@ If your plugin does not need CSS, delete this file.
     text-transform: uppercase;
     letter-spacing: 0.3px;
     line-height: 1;
+    text-shadow: 
+        -1px -1px 0 #000000,
+        1px -1px 0 #000000,
+        -1px 1px 0 #000000,
+        1px 1px 0 #000000;
 }
 
 /* Stage count below the stage indicator */
 .stage-count {
-    font-size: 8px;
+    font-size: 12px;
     text-align: center;
     line-height: 1;
     display: block;
-    margin-top: 3px;
+    margin-top: 1px;
 }
 
 /* Stage colors using icon SVGs */
@@ -216,7 +221,7 @@ If your plugin does not need CSS, delete this file.
     background: none;
     border: none;
     cursor: pointer;
-    padding: 4px 6px;
+    padding: 4px 2px; /* Reduce horizontal padding */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -235,7 +240,7 @@ If your plugin does not need CSS, delete this file.
     font-weight: 500;
     position: relative;
     top: -1px;
-    padding: 4px 8px !important;
+    padding: 4px 4px !important; /* Reduce horizontal padding, maintain vertical */
     background: none !important;
     border: none !important;
     color: var(--text-normal);
@@ -493,122 +498,6 @@ td.clickable-cell:hover::before {
 .revision-part.overdue {
     background-color: var(--color-overdue);
 }
-
-/* LEGEND STYLING - COMMENTED OUT AS LEGEND MOVED TO HEADER */
-/*
-.calendar-legend-separator {
-    height: 1px;
-    background-color: var(--background-modifier-border);
-    margin: 6px 0;
-}
-
-.legend-wrapper {
-    display: flex;
-    justify-content: center;
-}
-
-.calendar-legend {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    flex-wrap: nowrap;
-    padding: 4px 0px;
-    background-color: var(--background-secondary);
-    border-radius: 6px;
-    transform-origin: center top;
-    transform: scale(0.8);
-    margin: 0 auto;
-    gap: 2px;
-    border: none;
-}
-
-@media (max-width: 600px) {
-    .calendar-legend {
-        flex-wrap: wrap;
-    }
-    .legend-item {
-        flex: 0 0 auto;
-        margin-bottom: 4px;
-    }
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    padding: 2px 4px;
-    margin: 1px 2px;
-    border: 1px solid transparent;
-    border-radius: 4px;
-}
-
-.legend-wrapper .calendar-legend .legend-item.current-stage {
-    border: 2px dashed var(--text-accent) !important;
-    background-color: var(--background-primary-alt);
-    padding: 2px 4px;
-    box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
-}
-
-.legend-swatch {
-    width: 17px;
-    height: 17px;
-    margin-right: 3px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: transparent !important;
-    position: relative;
-}
-
-.legend-swatch svg {
-    width: 17px;
-    height: 17px;
-    stroke-width: 2px;
-    opacity: 1 !important;
-}
-
-.legend-swatch.stage-zero::after {
-    display: none;
-}
-
-.legend-swatch.stage-zero svg {
-    color: var(--color-zero) !important;
-}
-
-.legend-swatch.stage-author::after {
-    display: none;
-}
-
-.legend-swatch.stage-author svg {
-    color: var(--color-author) !important;
-}
-
-.legend-swatch.stage-house::after {
-    display: none;
-}
-
-.legend-swatch.stage-house svg {
-    color: var(--color-house) !important;
-}
-
-.legend-swatch.stage-press::after {
-    display: none;
-}
-
-.legend-swatch.stage-press svg {
-    color: var(--color-press) !important;
-}
-
-.legend-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0px;
-    white-space: nowrap;
-    margin: 0;
-    padding: 0;
-    font-weight: 200;
-    color: var(--text-normal);
-}
-*/
 
 /* SVG ICONS STYLING scoped to view content */
 .view-content button svg {
