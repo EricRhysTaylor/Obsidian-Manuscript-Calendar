@@ -1,12 +1,3 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
-
 /* Base Calendar Variables and Colors */
 :root {
     --color-zero: #b070e0;     /* Purple for stage zero */
@@ -28,19 +19,15 @@ If your plugin does not need CSS, delete this file.
 
 /* Add padding to the view-content container */
 .view-content {
-    padding: 20px 20px 20px 20px;
-}
-
-/* CALENDAR CONTAINER AND LAYOUT */
-/* Target .view-content for layout */
-.view-content {
+    padding: 20px;
     overflow-x: auto;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-/* Hide the header text within this view */
+/* CALENDAR CONTAINER AND LAYOUT */
+/* Target .view-content for layout */
 .view-content h3 {
     display: none;
 }
@@ -126,7 +113,7 @@ If your plugin does not need CSS, delete this file.
 .stage-icon-column {
     display: flex;
     align-items: center;
-    margin-right: 5; /* Explicitly zero */
+    margin-right: 5px;
     margin-left: 10px; /* Add spacing here instead */
     height: 100%;
 }
@@ -209,19 +196,18 @@ If your plugin does not need CSS, delete this file.
     color: var(--color-press);
 }
 
-.nav-buttons {
+.nav-controls {
     display: flex;
     gap: 0px; /* Remove gap for closer buttons */
     align-items: center;
     margin-left: auto;
 }
 
-.nav-buttons button,
-.calendar-header button {
+.nav-controls .nav-btn {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 4px 2px; /* Reduce horizontal padding */
+    padding: 0px 0px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -229,8 +215,8 @@ If your plugin does not need CSS, delete this file.
     box-shadow: none;
 }
 
-.nav-buttons button:hover,
-.calendar-header button:hover {
+/* Hover state */
+.nav-controls .nav-btn:hover {
     background: none;
     color: var(--text-accent);
 }
@@ -239,8 +225,7 @@ If your plugin does not need CSS, delete this file.
     font-size: 0.7rem;
     font-weight: 500;
     position: relative;
-    top: -1px;
-    padding: 4px 4px !important; /* Reduce horizontal padding, maintain vertical */
+    padding: 0px 0px !important; /* Reduce horizontal padding, maintain vertical */
     background: none !important;
     border: none !important;
     color: var(--text-normal);
@@ -613,14 +598,6 @@ td.clickable-cell:hover::before {
 }
 
 /* TOOLTIP SECTIONS */
-.overdue-section h4 {
-    color: var(--color-overdue);
-}
-
-.due-section h4 {
-    color: var(--color-future);
-}
-
 .completed-section li.stage-zero {
     color: var(--color-zero);
 }
@@ -691,14 +668,6 @@ td.clickable-cell:hover::before {
 }
 
 /* Section-specific colors */
-.overdue-section h4 {
-    color: var(--color-overdue);
-}
-
-.future-section h4 {
-    color: var(--color-future);
-}
-
 .completed-section li.stage-zero a {
     color: var(--color-zero);
 }

@@ -512,29 +512,38 @@ class ManuscriptCalendarView extends ItemView {
         const monthDisplay = monthSelector.createSpan();
         
         // Create a container for navigation buttons
-        const navButtons = monthSelector.createDiv({ cls: 'nav-buttons' });
+        const navControls = monthSelector.createDiv({ cls: 'nav-controls' });
         
-        // Add left arrow with SVG
-        const prevButton = navButtons.createEl('button', { 
-            cls: 'nav-button prev-month'
+        // Add left arrow with SVG - use span instead of button to avoid default padding
+        const prevButton = navControls.createSpan({ 
+            cls: 'nav-btn prev-month',
+            attr: { role: 'button', tabindex: '0' }
         });
         
         // Use Obsidian's built-in icon system
         setIcon(prevButton, 'chevron-left');
         
+        // Ensure it does not get clickable-icon padding
+        prevButton.classList.remove('clickable-icon');
+        
         // Add today button between arrows
-        const todayButton = navButtons.createEl('button', { 
+        const todayButton = navControls.createSpan({ 
             text: 'TODAY',
-            cls: 'today-button'
+            cls: 'today-button',
+            attr: { role: 'button', tabindex: '0' }
         });
         
         // Add right arrow with SVG
-        const nextButton = navButtons.createEl('button', { 
-            cls: 'nav-button next-month'
+        const nextButton = navControls.createSpan({ 
+            cls: 'nav-btn next-month',
+            attr: { role: 'button', tabindex: '0' }
         });
         
         // Use Obsidian's built-in icon system
         setIcon(nextButton, 'chevron-right');
+        
+        // Prevent default clickable-icon padding if added
+        nextButton.classList.remove('clickable-icon');
         
         // Update month display
         const updateMonthDisplay = async () => {
@@ -561,7 +570,7 @@ class ManuscriptCalendarView extends ItemView {
             // Create year text - only show last 2 digits
             const yearText = document.createElement('span');
             const fullYear = this.currentDate.getFullYear().toString();
-            yearText.textContent = fullYear.substring(fullYear.length - 2); // Only last 2 digits
+            yearText.textContent = "'" + fullYear.substring(fullYear.length - 2); // Add apostrophe
             yearText.className = 'year-text';
             headerContainer.appendChild(yearText);
             
@@ -1233,9 +1242,9 @@ class ManuscriptCalendarView extends ItemView {
                 const isToday = cellDate.toDateString() === today.toDateString();
                 
                 // Create day cell with appropriate classes
-                const dayCell = weekRow.createEl('td', {
-                    text: cellDate.getDate().toString()
-                });
+                const dayCell = weekRow.createEl('td');
+                // Create a span for the date number
+                dayCell.createSpan({ text: cellDate.getDate().toString() });
                 
                 // Store the date with the cell for event handlers to use
                 dayCell.dataset.date = dateKey;
@@ -1494,20 +1503,16 @@ class ManuscriptCalendarView extends ItemView {
                             targetNotes = notesForDate;
                         }
 
-                        // 3. Partition target notes into open and closed
-                        const openTargetNotes = targetNotes.filter(note => openFiles.has(note.file.path));
-                        const closedTargetNotes = targetNotes.filter(note => !openFiles.has(note.file.path));
-
                         this.debugLog(`Target Notes Partition for ${cellDateKey}:`, {
                             totalTargets: targetNotes.length,
-                            openTargets: openTargetNotes.map(n => n.file.path),
-                            closedTargets: closedTargetNotes.map(n => n.file.path)
+                            openTargets: targetNotes.filter(n => openFiles.has(n.file.path)).map(n => n.file.path),
+                            closedTargets: targetNotes.filter(n => !openFiles.has(n.file.path)).map(n => n.file.path)
                         });
 
                         // 4. Activate existing tab (if any)
                         let didActivateTab = false;
-                        if (openTargetNotes.length > 0) {
-                            const firstOpenNotePath = openTargetNotes[0].file.path;
+                        if (targetNotes.length > 0) {
+                            const firstOpenNotePath = targetNotes[0].file.path;
                             const existingLeaf = openFiles.get(firstOpenNotePath);
                             if (existingLeaf) {
                                 this.app.workspace.revealLeaf(existingLeaf);
@@ -1518,7 +1523,7 @@ class ManuscriptCalendarView extends ItemView {
 
                         // 5. Open closed tabs
                         const processedFiles = new Set<string>(); // Avoid accidental duplicates if logic errors
-                        closedTargetNotes.forEach((note, index) => {
+                        targetNotes.forEach((note, index) => {
                             const filePath = note.file.path;
                             if (processedFiles.has(filePath)) return; // Safety check
                             processedFiles.add(filePath);
