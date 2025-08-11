@@ -3,7 +3,7 @@ const path = require('path');
 
 // Define plugin directories
 const pluginDirs = [
-  '/Users/erictaylor/Documents/Author/Book Trisan Series/Trisan Obsidian Vault .nosync/.obsidian/plugins/manuscript-calendar',
+  '/Users/erictaylor/Documents/Author/Author Obsidian Vault .nosync/.obsidian/plugins/manuscript-calendar',
   '/Users/erictaylor/Documents/Code Projects/Test Obsidian Vault/.obsidian/plugins/manuscript-calendar'
 ];
 

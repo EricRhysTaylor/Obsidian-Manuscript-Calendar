@@ -31,8 +31,8 @@ try {
 // Define source and destination paths
 const sourceDir = "."; // Project root
 const destDirs = [
-	"/Users/erictaylor/Documents/Author/Book Trisan Series/Trisan Obsidian Vault .nosync/.obsidian/plugins/manuscript-calendar", // Updated plugin name
-	"/Users/erictaylor/Documents/Code Projects/Test Obsidian Vault/.obsidian/plugins/manuscript-calendar" // Updated plugin name
+	"/Users/erictaylor/Documents/Author/Author Obsidian Vault .nosync/.obsidian/plugins/manuscript-calendar",
+	"/Users/erictaylor/Documents/Code Projects/Test Obsidian Vault/.obsidian/plugins/manuscript-calendar"
 ];
 
 // Files to copy (manifest and styles from root)

@@ -499,20 +499,15 @@ class ManuscriptCalendarView extends ItemView {
         const container = this.contentEl;
         container.empty();
         
-        // Add a visible header
-        container.createEl('h3', { text: 'Manuscript Calendar' });
+        // Add a visible header why is this needed?
+        //container.createEl('h3', { text: 'Manuscript Calendar' });
         
-        // Create controls
-        const controlsDiv = container.createDiv({ cls: 'calendar-controls' });
+        // Create calendar header
+        const calendarHeader = container.createDiv({ cls: 'calendar-header' });
         
-        // Month selector
-        const monthSelector = controlsDiv.createDiv({ cls: 'month-selector' });
-        
-        // Month display - now first element
-        const monthDisplay = monthSelector.createSpan();
-        
-        // Create a container for navigation buttons
-        const navControls = monthSelector.createDiv({ cls: 'nav-controls' });
+        // Create three header columns inside calendarHeader
+        const headerStage = calendarHeader.createDiv({ cls: 'header-stage' });
+        const navControls = calendarHeader.createDiv({ cls: 'nav-controls' });
         
         // Add left arrow with SVG - use span instead of button to avoid default padding
         const prevButton = navControls.createSpan({ 
@@ -550,13 +545,13 @@ class ManuscriptCalendarView extends ItemView {
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
                            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             
-            // Clear the text content 
-            monthDisplay.empty();
+            // Clear the stage column before re-rendering
+            headerStage.empty();
             
-            // Create a container for month/year and stage info
+            // Create month/year container directly in calendarHeader (column 1)
             const headerContainer = document.createElement('div');
             headerContainer.className = 'month-year-stage-container';
-            monthDisplay.appendChild(headerContainer);
+            calendarHeader.insertBefore(headerContainer, headerStage);
             
             // Create month text
             const monthText = document.createElement('span');
@@ -701,8 +696,8 @@ class ManuscriptCalendarView extends ItemView {
                 textColumn.appendChild(stageCountElement);
             }
             
-            // Add the stage table to the header container
-            headerContainer.appendChild(stageTable);
+            // Add the stage table to the middle header block (column 2)
+            headerStage.appendChild(stageTable);
         };
         
         await updateMonthDisplay();

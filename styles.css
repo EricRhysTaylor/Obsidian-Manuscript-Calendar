@@ -8,13 +8,7 @@
     --color-future: #8e8e8e;   /* Grey for future todos */
     --color-working: #FF69B4;  /* Pink for working status */
     --color-text-today: #ff9100; /* Orange for today's date */
-    --ratio-svg-size: 24px; /* Increased from 20px for better visibility */
-    
-    /* SVG ratio stage colors */
-    --stage-zero-color: var(--color-zero);
-    --stage-author-color: var(--color-author);
-    --stage-house-color: var(--color-house);
-    --stage-press-color: var(--color-press);
+    --ratio-svg-size: 24px;
 }
 
 /* Add padding to the view-content container */
@@ -32,46 +26,59 @@
     display: none;
 }
 
-/* CALENDAR CONTROLS */
-.calendar-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-
-.month-selector {
+/* CALENDAR HEADER */
+.calendar-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    flex: 1;
+    gap: 4px;
     position: relative;
     margin-right: 0;
     margin-bottom: 6px;
+    flex-wrap: nowrap;
+    justify-content: space-between;
 }
 
-.month-selector span {
-    position: relative;
-    font-weight: 500;
-    margin-right: auto;
+/* Header Column Styling */
+.calendar-header .month-year-stage-container {
     display: flex;
-    align-items: baseline;
+    align-items: center;
+    flex: 1 0 40px;
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
 }
 
-.month-selector span::before {
-    content: attr(data-month);
-    margin-right: 5px;
+.calendar-header .header-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 0 50px;
+    overflow: visible;
+    margin: 0;
+    padding: 0;
 }
 
-
-/* Remove the old stage indicator styles */
-.month-selector span[data-stage]:not([data-stage=""]):not([data-stage="undefined"]) {
-    position: relative;
-    padding-right: 0; /* Remove extra padding */
+.calendar-header .nav-controls {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    white-space: nowrap;
+    justify-content: flex-end;
+    margin: 0;
+    padding: 0;
 }
 
-/* Month/Year elements */
+/* Month/Year Container */
+.month-year-stage-container {
+    display: flex;
+    align-items: center;
+    height: 30px;
+    flex-wrap: nowrap;
+    column-gap: 2px;
+}
+
+/* Month/Year Text Elements */
 .month-text {
     font-size: 22px !important;
     font-weight: 500;
@@ -80,23 +87,19 @@
 .year-text {
     font-size: 22px !important;
     font-weight: 600;
-    color: transparent; /* Make fill transparent */
-    -webkit-text-stroke: 1.5px var(--text-accent); /* Add stroke - increased thickness */
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--text-accent);
     vertical-align: baseline;
 }
 
-/* New header layout */
-.month-year-stage-container {
-    display: flex;
-    align-items: center;
-    height: 30px;
-}
 
 /* Stage table layout */
 .stage-table {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     height: 30px;
+    margin: 0;
+    padding: 0;
 }
 
 /* Stage text column */
@@ -105,7 +108,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
-    margin-left: -2px; /* Negative margin to reduce space between icon and text */
+    margin-left: 2px; /* Negative margin to reduce space between icon and text */
     height: 100%;
 }
 
@@ -113,26 +116,23 @@
 .stage-icon-column {
     display: flex;
     align-items: center;
-    margin-right: 5px;
-    margin-left: 10px; /* Add spacing here instead */
     height: 100%;
 }
 
 /* Stage icon */
 .stage-icon {
-    height: 26px;
-    width: 26px;
+    height: 22px;
+    width: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative; /* for next line. top: 1px; used to push up or down the icon */
-    
+    position: relative;
 }
 
 /* Force SVG icon size */
 .stage-icon svg {
-    width: 26px !important; /* Override SVG attribute */
-    height: 26px !important; /* Override SVG attribute */
+    width: 22px !important;
+    height: 22px !important;
 }
 
 /* Stage indicator text */
@@ -158,10 +158,14 @@
     margin-top: 1px;
 }
 
-/* Stage colors using icon SVGs */
+/* Stage Colors */
 .stage-zero .stage-icon svg,
 .stage-icon.stage-zero svg {
     color: var(--color-zero) !important;
+}
+
+.stage-indicator.stage-zero {
+    color: var(--color-zero);
 }
 
 .stage-author .stage-icon svg,
@@ -169,9 +173,17 @@
     color: var(--color-author) !important;
 }
 
+.stage-indicator.stage-author {
+    color: var(--color-author);
+}
+
 .stage-house .stage-icon svg,
 .stage-icon.stage-house svg {
     color: var(--color-house) !important;
+}
+
+.stage-indicator.stage-house {
+    color: var(--color-house);
 }
 
 .stage-press .stage-icon svg,
@@ -179,28 +191,16 @@
     color: var(--color-press) !important;
 }
 
-/* Stage colors using classes */
-.stage-indicator.stage-zero {
-    color: var(--color-zero);
-}
-
-.stage-indicator.stage-author {
-    color: var(--color-author);
-}
-
-.stage-indicator.stage-house {
-    color: var(--color-house);
-}
-
 .stage-indicator.stage-press {
     color: var(--color-press);
 }
 
+/* Navigation Controls */
 .nav-controls {
     display: flex;
-    gap: 0px; /* Remove gap for closer buttons */
+    gap: 0px;
     align-items: center;
-    margin-left: auto;
+    margin-left: 0;
 }
 
 .nav-controls .nav-btn {
