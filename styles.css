@@ -41,7 +41,7 @@
 /* Header Column Styling */
 .calendar-header .month-year-stage-container {
     display: flex;
-    align-items: center;
+    align-items: left;
     flex: 1 0 40px;
     overflow: visible;
     margin: 0;
@@ -51,8 +51,8 @@
 
 .calendar-header .header-stage {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: left;
+    justify-content: left;
     flex: 1 0 50px;
     overflow: visible;
     margin: 0;
